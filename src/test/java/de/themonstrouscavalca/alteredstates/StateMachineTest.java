@@ -19,6 +19,7 @@ public class StateMachineTest{
             return getName();
         }
     }
+
     public enum Event{
         EVENT_1,
         EVENT_2,
