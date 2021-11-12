@@ -1,6 +1,7 @@
 package de.themonstrouscavalca.alteredstates;
 
-import de.themonstrouscavalca.alteredstates.interfaces.EventConsumer;
+import de.themonstrouscavalca.alteredstates.interfaces.IConsumeEvents;
+import de.themonstrouscavalca.alteredstates.interfaces.INameStates;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -14,20 +15,20 @@ import java.util.stream.Collectors;
  * @param <C> State context class
  * @param <X> Event context class
  */
-public class NestedStateMachine<S, E, C, X, T extends StateMachine<S, E, C, X>>{
+public class NestedStateMachine<S extends INameStates, E, C, X, T extends StateMachine<S, E, C, X>>{
     private final T initialState;
     private T currentState;
     private final List<T> states;
     private final List<E> events;
     private final List<Transition<T, E>> transitions;
     private final Map<E, List<Transition<T, E>>> eventMap;
-    private final Map<Transition<T, E>, EventConsumer<E, X, C>> handlerMap;
+    private final Map<Transition<T, E>, IConsumeEvents<E, X, C>> handlerMap;
     private final C context;
 
     public NestedStateMachine(T initialState,
                               List<T> states, List<E> events,
                               List<Transition<T, E>> transitions,
-                              Map<Transition<T, E>, EventConsumer<E, X, C>> handlerMap,
+                              Map<Transition<T, E>, IConsumeEvents<E, X, C>> handlerMap,
                               C context){
         this.initialState = initialState;
         this.currentState = initialState;
@@ -73,7 +74,7 @@ public class NestedStateMachine<S, E, C, X, T extends StateMachine<S, E, C, X>>{
         return eventMap;
     }
 
-    public Map<Transition<T, E>, EventConsumer<E, X, C>> getHandlerMap(){
+    public Map<Transition<T, E>, IConsumeEvents<E, X, C>> getHandlerMap(){
         return handlerMap;
     }
 

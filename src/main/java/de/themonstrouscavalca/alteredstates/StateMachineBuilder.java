@@ -1,7 +1,8 @@
 package de.themonstrouscavalca.alteredstates;
 
-import de.themonstrouscavalca.alteredstates.interfaces.EventConsumer;
+import de.themonstrouscavalca.alteredstates.interfaces.IConsumeEvents;
 import de.themonstrouscavalca.alteredstates.interfaces.IBuildStateMachines;
+import de.themonstrouscavalca.alteredstates.interfaces.INameStates;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,13 +17,14 @@ import java.util.stream.Collectors;
  * @param <C> Current context
  * @param <X> Event context
  */
-public class StateMachineBuilder<S, E, C, X, T extends StateMachine<S, E, C, X>> implements IBuildStateMachines<T>{
+public class StateMachineBuilder<S extends INameStates, E, C, X, T extends StateMachine<S, E, C, X>> implements IBuildStateMachines<T>{
     protected S initialState;
     protected List<Transition<S, E>> transitions = new ArrayList<>();
-    protected Map<Transition<S, E>, EventConsumer<E, X, C>> handlerMap = new HashMap<>();
+    protected Map<Transition<S, E>, IConsumeEvents<E, X, C>> handlerMap = new HashMap<>();
     protected List<InternalTransition<S, E>> internalTransitions = new ArrayList<>();
-    protected Map<InternalTransition<S, E>,  EventConsumer<E, X, C>> internalHandlerMap = new HashMap<>();
+    protected Map<InternalTransition<S, E>, IConsumeEvents<E, X, C>> internalHandlerMap = new HashMap<>();
     protected C context;
+    protected String name;
 
     protected List<S> finalStates;
     protected List<E> finalEvents;
@@ -37,7 +39,7 @@ public class StateMachineBuilder<S, E, C, X, T extends StateMachine<S, E, C, X>>
         return this;
     }
 
-    public StateMachineBuilder<S, E, C, X, T> addTransition(S from, S to, E onEvent, EventConsumer<E, X, C> updateHandler){
+    public StateMachineBuilder<S, E, C, X, T> addTransition(S from, S to, E onEvent, IConsumeEvents<E, X, C> updateHandler){
         Transition<S, E> transition = new Transition<>(from, to, onEvent);
         this.transitions.add(transition);
         this.handlerMap.put(transition, updateHandler);
@@ -51,7 +53,7 @@ public class StateMachineBuilder<S, E, C, X, T extends StateMachine<S, E, C, X>>
         return this;
     }
 
-    public StateMachineBuilder<S, E, C, X, T> addInternalTransition(S state, E onEvent, EventConsumer<E, X, C> updateHandler){
+    public StateMachineBuilder<S, E, C, X, T> addInternalTransition(S state, E onEvent, IConsumeEvents<E, X, C> updateHandler){
         InternalTransition<S, E> transition = new InternalTransition<>(state, onEvent);
         this.internalTransitions.add(transition);
         this.internalHandlerMap.put(transition, updateHandler);
@@ -62,6 +64,11 @@ public class StateMachineBuilder<S, E, C, X, T extends StateMachine<S, E, C, X>>
         InternalTransition<S, E> transition = new InternalTransition<>(state, onEvent);
         this.internalTransitions.add(transition);
         this.internalHandlerMap.put(transition, (e, x, c) -> true);
+        return this;
+    }
+
+    public StateMachineBuilder<S, E, C, X, T> setName(String name){
+        this.name = name;
         return this;
     }
 
@@ -83,7 +90,8 @@ public class StateMachineBuilder<S, E, C, X, T extends StateMachine<S, E, C, X>>
                 this.internalTransitions,
                 this.handlerMap,
                 this.internalHandlerMap,
-                this.context);
+                this.context,
+                this.name);
     }
 
     public T build(){

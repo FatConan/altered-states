@@ -1,6 +1,7 @@
 package de.themonstrouscavalca.alteredstates;
 
-import de.themonstrouscavalca.alteredstates.interfaces.EventConsumer;
+import de.themonstrouscavalca.alteredstates.interfaces.IConsumeEvents;
+import de.themonstrouscavalca.alteredstates.interfaces.INameStates;
 import org.junit.Test;
 
 import java.util.List;
@@ -8,10 +9,15 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 
 public class StateMachineTest{
-    public enum State{
+    public enum State implements INameStates{
         STATE_1,
         STATE_2,
         STATE_3;
+
+        @Override
+        public String getName(){
+            return getName();
+        }
     }
     public enum Event{
         EVENT_1,
@@ -26,17 +32,17 @@ public class StateMachineTest{
         public SubMachine(State initialState, List<State> states,
                           List<Event> events, List<Transition<State, Event>> transitions,
                           List<InternalTransition<State, Event>> internalTransitions,
-                          Map<Transition<State, Event>, EventConsumer<Event, String, String>> handlerMap,
-                          Map<InternalTransition<State, Event>, EventConsumer<Event, String, String>> internalHandlerMap,
-                          String context){
-            super(initialState, states, events, transitions, internalTransitions, handlerMap, internalHandlerMap, context);
+                          Map<Transition<State, Event>, IConsumeEvents<Event, String, String>> handlerMap,
+                          Map<InternalTransition<State, Event>, IConsumeEvents<Event, String, String>> internalHandlerMap,
+                          String context, String name){
+            super(initialState, states, events, transitions, internalTransitions, handlerMap, internalHandlerMap, context, name);
         }
     }
 
     public static class Machine extends NestedStateMachine<State, Event, String, String, SubMachine>{
         public Machine(SubMachine initialState, List<SubMachine> states, List<Event> events,
                        List<Transition<SubMachine, Event>> transitions,
-                       Map<Transition<SubMachine, Event>, EventConsumer<Event, String, String>> handlerMap, String context){
+                       Map<Transition<SubMachine, Event>, IConsumeEvents<Event, String, String>> handlerMap, String context){
             super(initialState, states, events, transitions, handlerMap, context);
         }
     }
@@ -54,7 +60,8 @@ public class StateMachineTest{
                     this.internalTransitions,
                     this.handlerMap,
                     this.internalHandlerMap,
-                    this.context);
+                    this.context,
+                    this.name);
         }
     }
 
@@ -71,8 +78,6 @@ public class StateMachineTest{
                     this.context);
         }
     }
-
-
 
     @Test
     public void createBuilderWithStatesAndEvents(){

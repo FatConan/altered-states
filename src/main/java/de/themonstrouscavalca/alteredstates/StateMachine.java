@@ -1,6 +1,7 @@
 package de.themonstrouscavalca.alteredstates;
 
-import de.themonstrouscavalca.alteredstates.interfaces.EventConsumer;
+import de.themonstrouscavalca.alteredstates.interfaces.IConsumeEvents;
+import de.themonstrouscavalca.alteredstates.interfaces.INameStates;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -12,7 +13,7 @@ import java.util.stream.Collectors;
  * @param <C> State context class
  * @param <X> Event context class
  */
-public class StateMachine<S, E, C, X>{
+public class StateMachine<S extends INameStates, E, C, X> implements INameStates{
     private final S initialState;
     private S currentState;
     private final List<S> states;
@@ -21,20 +22,22 @@ public class StateMachine<S, E, C, X>{
     private final Map<E, List<Transition<S, E>>> eventMap;
     private final List<InternalTransition<S, E>> internalTransitions;
     private final Map<E, List<InternalTransition<S, E>>> internalEventMap;
-    private final Map<Transition<S, E>, EventConsumer<E, X, C>> handlerMap;
-    private final Map<InternalTransition<S,E>, EventConsumer<E, X, C>> internalHandlerMap;
+    private final Map<Transition<S, E>, IConsumeEvents<E, X, C>> handlerMap;
+    private final Map<InternalTransition<S,E>, IConsumeEvents<E, X, C>> internalHandlerMap;
     private final C context;
+    private final String name;
 
     public StateMachine(S initialState, List<S> states, List<E> events,
                  List<Transition<S, E>> transitions,
                  List<InternalTransition<S, E>> internalTransitions,
-                 Map<Transition<S, E>, EventConsumer<E, X, C>> handlerMap,
-                 Map<InternalTransition<S, E>, EventConsumer<E, X, C>> internalHandlerMap,
-                 C context){
+                 Map<Transition<S, E>, IConsumeEvents<E, X, C>> handlerMap,
+                 Map<InternalTransition<S, E>, IConsumeEvents<E, X, C>> internalHandlerMap,
+                 C context, String name){
         this.initialState = initialState;
         this.currentState = initialState;
         this.states = states;
         this.events = events;
+        this.name = name;
 
         this.handlerMap = handlerMap;
         this.internalHandlerMap = internalHandlerMap;
@@ -84,41 +87,47 @@ public class StateMachine<S, E, C, X>{
         return initialState;
     }
 
+    @Override
+    public String getName(){
+        return this.name;
+    }
+
     public List<S> getStates(){
-        return states;
+        return this.states;
     }
 
     public List<E> getEvents(){
-        return events;
+        return this.events;
     }
 
     public List<Transition<S, E>> getTransitions(){
-        return transitions;
+        return this.transitions;
     }
 
     public Map<E, List<Transition<S, E>>> getEventMap(){
-        return eventMap;
+        return this.eventMap;
     }
 
     public List<InternalTransition<S, E>> getInternalTransitions(){
-        return internalTransitions;
+        return this.internalTransitions;
     }
 
     public Map<E, List<InternalTransition<S, E>>> getInternalEventMap(){
-        return internalEventMap;
+        return this.internalEventMap;
     }
 
-    public Map<Transition<S, E>, EventConsumer<E, X, C>> getHandlerMap(){
-        return handlerMap;
+    public Map<Transition<S, E>, IConsumeEvents<E, X, C>> getHandlerMap(){
+        return this.handlerMap;
     }
 
-    public Map<InternalTransition<S, E>, EventConsumer<E, X, C>> getInternalHandlerMap(){
-        return internalHandlerMap;
+    public Map<InternalTransition<S, E>, IConsumeEvents<E, X, C>> getInternalHandlerMap(){
+        return this.internalHandlerMap;
     }
 
     public C getContext(){
-        return context;
+        return this.context;
     }
+
 
     public StateChange<S, E, C, X> onEvent(E event, X eventContext){
         boolean externalTransitionFound = false;

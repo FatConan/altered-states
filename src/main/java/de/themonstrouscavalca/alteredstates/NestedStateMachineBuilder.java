@@ -1,22 +1,23 @@
 package de.themonstrouscavalca.alteredstates;
 
-import de.themonstrouscavalca.alteredstates.interfaces.EventConsumer;
+import de.themonstrouscavalca.alteredstates.interfaces.IConsumeEvents;
 import de.themonstrouscavalca.alteredstates.interfaces.IBuildStateMachines;
+import de.themonstrouscavalca.alteredstates.interfaces.INameStates;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class NestedStateMachineBuilder<S, E, C, X, T extends StateMachine<S, E, C, X>, V extends NestedStateMachine<S, E, C, X, T>>
+public class NestedStateMachineBuilder<S extends INameStates, E, C, X, T extends StateMachine<S, E, C, X>, V extends NestedStateMachine<S, E, C, X, T>>
         implements IBuildStateMachines<V>{
     protected T initialState;
     protected List<T> states = new ArrayList<>();
     protected List<E> events = new ArrayList<>();
     protected List<Transition<T, E>> transitions = new ArrayList<>();
     protected List<InternalTransition<T, E>> internalTransitions  = new ArrayList<>();
-    protected Map<Transition<T, E>, EventConsumer<E, X, C>> handlerMap = new HashMap<>();
-    protected Map<InternalTransition<T,E>, EventConsumer<E, X, C>> internalHandlerMap = new HashMap<>();
+    protected Map<Transition<T, E>, IConsumeEvents<E, X, C>> handlerMap = new HashMap<>();
+    protected Map<InternalTransition<T,E>, IConsumeEvents<E, X, C>> internalHandlerMap = new HashMap<>();
     protected C context;
 
     public NestedStateMachineBuilder<S, E, C, X, T, V> setContext(C context){
@@ -29,7 +30,7 @@ public class NestedStateMachineBuilder<S, E, C, X, T extends StateMachine<S, E, 
         return this;
     }
 
-    public NestedStateMachineBuilder<S, E, C, X, T, V> addTransition(T from, T to, E onEvent, EventConsumer<E, X, C> updateHandler){
+    public NestedStateMachineBuilder<S, E, C, X, T, V> addTransition(T from, T to, E onEvent, IConsumeEvents<E, X, C> updateHandler){
         Transition<T, E> transition = new Transition<>(from, to, onEvent);
         this.transitions.add(transition);
         this.handlerMap.put(transition, updateHandler);
