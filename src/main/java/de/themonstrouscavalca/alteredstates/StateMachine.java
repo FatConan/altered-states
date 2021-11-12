@@ -1,6 +1,6 @@
-package de.themonstrouscavalca.alteredStates;
+package de.themonstrouscavalca.alteredstates;
 
-import de.themonstrouscavalca.alteredStates.interfaces.EventConsumer;
+import de.themonstrouscavalca.alteredstates.interfaces.EventConsumer;
 
 import java.util.*;
 import java.util.stream.Collectors;

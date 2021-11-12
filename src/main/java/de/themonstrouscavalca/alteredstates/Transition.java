@@ -1,4 +1,4 @@
-package de.themonstrouscavalca.alteredStates;
+package de.themonstrouscavalca.alteredstates;
 
 public class Transition<S, E>{
     private S fromState;

@@ -1,7 +1,7 @@
-package de.themonstrouscavalca.alteredStates;
+package de.themonstrouscavalca.alteredstates;
 
-import de.themonstrouscavalca.alteredStates.interfaces.EventConsumer;
-import de.themonstrouscavalca.alteredStates.interfaces.IBuildStateMachines;
+import de.themonstrouscavalca.alteredstates.interfaces.EventConsumer;
+import de.themonstrouscavalca.alteredstates.interfaces.IBuildStateMachines;
 
 import java.util.ArrayList;
 import java.util.HashMap;

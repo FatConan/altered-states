@@ -1,4 +1,4 @@
-package de.themonstrouscavalca.alteredStates.interfaces;
+package de.themonstrouscavalca.alteredstates.interfaces;
 
 @FunctionalInterface
 public interface EventConsumer<E, X, C>{
