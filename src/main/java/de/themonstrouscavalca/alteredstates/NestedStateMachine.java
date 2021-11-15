@@ -129,4 +129,18 @@ public class NestedStateMachine<S extends INameStates, E, C, X, T extends StateM
                 .filter(t -> t.getFromState().equals(this.currentState))
                 .collect(Collectors.toList());
     }
+
+    public Events<E> getEventsForState(T state){
+        List<E> externalEvents = this.transitions.stream()
+                .filter(t -> t.getFromState().equals(state))
+                .map(Transition::getEvent)
+                .collect(Collectors.toList());
+        return new Events<>(externalEvents, Collections.emptyList());
+    }
+
+    public Transitions<T, E> getTransitionsForState(T state){
+        List<Transition<T, E>> externalStates = this.transitions.stream()
+                .filter(t -> t.getFromState().equals(state)).collect(Collectors.toList());
+        return new Transitions<>(externalStates, Collections.emptyList());
+    }
 }

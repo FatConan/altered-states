@@ -100,6 +100,25 @@ public class StateMachine<S extends INameStates, E, C, X> implements INameStates
         return this.events;
     }
 
+    public Events<E> getEventsForState(S state){
+        List<E> externalEvents = this.getTransitions().stream()
+                .filter(t -> t.getFromState().equals(state))
+                .map(Transition::getEvent)
+                .collect(Collectors.toList());
+        List<E> internalEvents = this.getInternalTransitions().stream()
+                .filter(t -> t.getState().equals(state))
+                .map(InternalTransition::getEvent).collect(Collectors.toList());
+        return new Events<>(externalEvents, internalEvents);
+    }
+
+    public Transitions<S, E> getTransitionsForState(S state){
+        List<Transition<S, E>> externalStates = this.getTransitions().stream()
+                .filter(t -> t.getFromState().equals(state)).collect(Collectors.toList());
+        List<InternalTransition<S, E>> internalStates = this.getInternalTransitions().stream()
+                .filter(t -> t.getState().equals(state)).collect(Collectors.toList());
+        return new Transitions<>(externalStates, internalStates);
+    }
+
     public List<Transition<S, E>> getTransitions(){
         return this.transitions;
     }
