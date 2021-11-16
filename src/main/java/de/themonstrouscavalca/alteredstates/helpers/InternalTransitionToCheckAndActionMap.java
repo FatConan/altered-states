@@ -6,6 +6,6 @@ import de.themonstrouscavalca.alteredstates.interfaces.INameStates;
 
 import java.util.HashMap;
 
-public class InternalTransitionMap<S extends INameStates, E extends INameEvents, C, X>
+public class InternalTransitionToCheckAndActionMap<S extends INameStates, E extends INameEvents, C, X>
         extends HashMap<InternalTransition<S, E>, EventCheckAndAction<E, C, X>>{
 }

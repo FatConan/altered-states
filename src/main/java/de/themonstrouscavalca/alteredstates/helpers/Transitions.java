@@ -1,4 +1,7 @@
-package de.themonstrouscavalca.alteredstates;
+package de.themonstrouscavalca.alteredstates.helpers;
+
+import de.themonstrouscavalca.alteredstates.InternalTransition;
+import de.themonstrouscavalca.alteredstates.Transition;
 
 import java.util.List;
 

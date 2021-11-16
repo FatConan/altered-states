@@ -3,15 +3,12 @@ package de.themonstrouscavalca.alteredstates.abs;
 import de.themonstrouscavalca.alteredstates.InternalTransition;
 import de.themonstrouscavalca.alteredstates.Transition;
 import de.themonstrouscavalca.alteredstates.helpers.EventCheckAndAction;
-import de.themonstrouscavalca.alteredstates.helpers.InternalTransitionMap;
-import de.themonstrouscavalca.alteredstates.helpers.TransitionMap;
+import de.themonstrouscavalca.alteredstates.helpers.InternalTransitionToCheckAndActionMap;
+import de.themonstrouscavalca.alteredstates.helpers.TransitionToCheckAndActionMap;
 import de.themonstrouscavalca.alteredstates.interfaces.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -26,9 +23,9 @@ public abstract class AbstractStateMachineBuilder<S extends INameStates,
         implements IBuildStateMachines<S, E, C, X, T>, IExpressStateMachines<S, E, C, X>{
     protected S initialState;
     protected List<Transition<S, E>> transitions = new ArrayList<>();
-    protected TransitionMap<S, E, C, X> handlerMap = new TransitionMap<>();
+    protected TransitionToCheckAndActionMap<S, E, C, X> handlerMap = new TransitionToCheckAndActionMap<>();
     protected List<InternalTransition<S, E>> internalTransitions = new ArrayList<>();
-    protected InternalTransitionMap<S, E, C, X> internalHandlerMap = new InternalTransitionMap<>();
+    protected InternalTransitionToCheckAndActionMap<S, E, C, X> internalHandlerMap = new InternalTransitionToCheckAndActionMap<>();
     protected C context;
     protected String name;
 
@@ -97,7 +94,7 @@ public abstract class AbstractStateMachineBuilder<S extends INameStates,
         return transitions;
     }
 
-    public TransitionMap<S, E, C, X> getHandlerMap(){
+    public TransitionToCheckAndActionMap<S, E, C, X> getHandlerMap(){
         return handlerMap;
     }
 
@@ -105,7 +102,7 @@ public abstract class AbstractStateMachineBuilder<S extends INameStates,
         return internalTransitions;
     }
 
-    public InternalTransitionMap<S, E, C, X> getInternalHandlerMap(){
+    public InternalTransitionToCheckAndActionMap<S, E, C, X> getInternalHandlerMap(){
         return internalHandlerMap;
     }
 
