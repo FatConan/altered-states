@@ -12,7 +12,6 @@ public class InternalTransition<S, E>{
     public S getState(){
         return state;
     }
-
     public E getEvent(){
         return event;
     }

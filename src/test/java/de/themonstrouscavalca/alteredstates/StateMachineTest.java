@@ -1,11 +1,13 @@
 package de.themonstrouscavalca.alteredstates;
 
-import de.themonstrouscavalca.alteredstates.interfaces.IConsumeEvents;
+import de.themonstrouscavalca.alteredstates.abs.AbstractStateMachineBuilder;
+import de.themonstrouscavalca.alteredstates.impl.StateMachine;
+import de.themonstrouscavalca.alteredstates.impl.StateMachineBuilder;
+import de.themonstrouscavalca.alteredstates.interfaces.IManageStates;
+import de.themonstrouscavalca.alteredstates.interfaces.INameEvents;
 import de.themonstrouscavalca.alteredstates.interfaces.INameStates;
 import org.junit.Test;
 
-import java.util.List;
-import java.util.Map;
 import static org.junit.Assert.assertEquals;
 
 public class StateMachineTest{
@@ -20,71 +22,62 @@ public class StateMachineTest{
         }
     }
 
-    public enum Event{
+    public enum Event implements INameEvents{
         EVENT_1,
         EVENT_2,
         EVENT_3,
         EVENT_4,
         EVENT_5,
         EVENT_6;
-    }
-
-    public static class SubMachine extends StateMachine<State, Event, String, String>{
-        public SubMachine(State initialState, List<State> states,
-                          List<Event> events, List<Transition<State, Event>> transitions,
-                          List<InternalTransition<State, Event>> internalTransitions,
-                          Map<Transition<State, Event>, IConsumeEvents<Event, String, String>> handlerMap,
-                          Map<InternalTransition<State, Event>, IConsumeEvents<Event, String, String>> internalHandlerMap,
-                          String context, String name){
-            super(initialState, states, events, transitions, internalTransitions, handlerMap, internalHandlerMap, context, name);
-        }
-    }
-
-    public static class Machine extends NestedStateMachine<State, Event, String, String, SubMachine>{
-        public Machine(SubMachine initialState, List<SubMachine> states, List<Event> events,
-                       List<Transition<SubMachine, Event>> transitions,
-                       Map<Transition<SubMachine, Event>, IConsumeEvents<Event, String, String>> handlerMap, String context){
-            super(initialState, states, events, transitions, handlerMap, context);
-        }
-    }
-
-    public static class SubMachineBuilder extends StateMachineBuilder<State, Event, String, String, SubMachine>{
-
-        public static SubMachineBuilder builder(){
-            return new SubMachineBuilder();
-        }
 
         @Override
-        protected SubMachine createInstance(){
-            return new SubMachine(this.initialState, this.finalStates, this.finalEvents,
-                    this.transitions,
-                    this.internalTransitions,
-                    this.handlerMap,
-                    this.internalHandlerMap,
-                    this.context,
-                    this.name);
+        public String getName(){
+            return getName();
         }
     }
 
-    public static class MachineBuilder extends NestedStateMachineBuilder<State, Event, String, String, SubMachine, Machine>{
+    public static class SubMachine extends StateMachine<State, Event, String, String>
+            implements IManageStates<State, Event, String, String>{
+        public SubMachine(SubMachineBuilder builder){
+            super(builder);
+        }
+    }
+
+    public static class Machine extends StateMachine<SubMachine, Event, String, String>
+        implements IManageStates<SubMachine, Event, String, String>{
+        public Machine(MachineBuilder builder){
+            super(builder);
+        }
+
+        public StateChange<SubMachine, Event, String, String> onEvent(Event event, String eventContext){
+            StateChange<State, Event, String, String> internal = this.getCurrentState().onEvent(event, eventContext);
+            return this.handleEvent(event, eventContext);
+        }
+    }
+
+    public static class SubMachineBuilder
+            extends AbstractStateMachineBuilder<State, Event, String, String, SubMachine>{
+        @Override
+        protected SubMachine createInstance(){
+            return new SubMachine(this);
+        }
+    }
+
+    public static class MachineBuilder extends AbstractStateMachineBuilder<SubMachine, Event, String, String, Machine>{
         public static MachineBuilder builder(){
             return new MachineBuilder();
         }
 
         @Override
         protected Machine createInstance(){
-            return new Machine(this.initialState, this.states, this.events,
-                    this.transitions,
-                    this.handlerMap,
-                    this.context);
+            return new Machine(this);
         }
     }
 
     @Test
     public void createBuilderWithStatesAndEvents(){
-        StateMachineBuilder<State, Event, String, String, StateMachine<State, Event, String, String>> builder =
-                new StateMachineBuilder<State, Event, String, String, StateMachine<State, Event, String, String>>()
-                .addTransition(State.STATE_1, State.STATE_2, Event.EVENT_1)
+        StateMachineBuilder<State, Event, String, String> builder = new StateMachineBuilder<>();
+                builder.addTransition(State.STATE_1, State.STATE_2, Event.EVENT_1)
                 .addTransition(State.STATE_2, State.STATE_3, Event.EVENT_2)
                 .addTransition(State.STATE_3, State.STATE_1, Event.EVENT_3)
                 .setContext("TEST")
@@ -158,7 +151,7 @@ public class StateMachineTest{
     @Test
     public void createdNestedBuilder(){
         StateMachine<State, Event, String, String> subMachine1 =
-                new StateMachineBuilder<State, Event, String, String, StateMachine<State, Event, String, String>>()
+                new StateMachineBuilder<State, Event, String, String>()
                         .addTransition(State.STATE_1, State.STATE_2, Event.EVENT_1)
                         .addTransition(State.STATE_2, State.STATE_3, Event.EVENT_2)
                         .addTransition(State.STATE_3, State.STATE_1, Event.EVENT_3)
@@ -167,21 +160,21 @@ public class StateMachineTest{
                         .build();
 
         StateMachine<State, Event, String, String> subMachine2 =
-                new StateMachineBuilder<State, Event, String, String, StateMachine<State, Event, String, String>>()
+                new StateMachineBuilder<State, Event, String, String>()
                         .addTransition(State.STATE_1, State.STATE_3, Event.EVENT_3)
                         .setContext("TEST")
                         .setInitialState(State.STATE_1)
                         .build();
 
         StateMachine<State, Event, String, String> subMachine3 =
-                new StateMachineBuilder<State, Event, String, String, StateMachine<State, Event, String, String>>()
+                new StateMachineBuilder<State, Event, String, String>()
                         .addTransition(State.STATE_3, State.STATE_2, Event.EVENT_1)
                         .setContext("TEST")
                         .setInitialState(State.STATE_3)
                         .build();
 
-        NestedStateMachine<State, Event, String, String, StateMachine<State, Event, String, String>> machine =
-                new NestedStateMachineBuilder<State, Event, String, String, StateMachine<State, Event, String, String>, NestedStateMachine<State, Event, String, String, StateMachine<State, Event, String, String>>>()
+        StateMachine<StateMachine<State, Event, String, String>, Event, String, String> machine =
+                new StateMachineBuilder<StateMachine<State, Event, String, String>, Event, String, String>()
                         .addTransition(subMachine1, subMachine2, Event.EVENT_4)
                         .addTransition(subMachine2, subMachine3, Event.EVENT_5)
                         .addTransition(subMachine3, subMachine1, Event.EVENT_6)
@@ -192,17 +185,17 @@ public class StateMachineTest{
         StateChange<StateMachine<State, Event, String, String>, Event, String, String> next  = machine.onEvent(Event.EVENT_1);
         assertEquals("Progression 1 doesn't match", subMachine1, next.getToState());
         assertEquals("Progression 1 doesn't match", subMachine1, machine.getCurrentState());
-        assertEquals("Progression 1 doesn't match", State.STATE_2, machine.getCurrentState().getCurrentState());
+        assertEquals("Progression 1 doesn't match", State.STATE_1, machine.getCurrentState().getCurrentState());
 
         next  = machine.onEvent(Event.EVENT_1);
         assertEquals("Progression 1 doesn't match", subMachine1, next.getToState());
         assertEquals("Progression 1 doesn't match", subMachine1, machine.getCurrentState());
-        assertEquals("Progression 1 doesn't match", State.STATE_2, machine.getCurrentState().getCurrentState());
+        assertEquals("Progression 1 doesn't match", State.STATE_1, machine.getCurrentState().getCurrentState());
 
         next = machine.onEvent(Event.EVENT_2);
         assertEquals("Progression 1 doesn't match", subMachine1, next.getToState());
         assertEquals("Progression 1 doesn't match", subMachine1, machine.getCurrentState());
-        assertEquals("Progression 1 doesn't match", State.STATE_3, machine.getCurrentState().getCurrentState());
+        assertEquals("Progression 1 doesn't match", State.STATE_1, machine.getCurrentState().getCurrentState());
 
         next = machine.onEvent(Event.EVENT_4);
         assertEquals("Progression 2 doesn't match", subMachine2, next.getToState());
@@ -217,12 +210,12 @@ public class StateMachineTest{
         next = machine.onEvent(Event.EVENT_1);
         assertEquals("Progression 3 doesn't match", subMachine3, next.getToState());
         assertEquals("Progression 3 doesn't match", subMachine3, machine.getCurrentState());
-        assertEquals("Progression 2 doesn't match", State.STATE_2, machine.getCurrentState().getCurrentState());
+        assertEquals("Progression 2 doesn't match", State.STATE_3, machine.getCurrentState().getCurrentState());
 
         next = machine.onEvent(Event.EVENT_6);
         assertEquals("Progression 3 doesn't match", subMachine1, next.getToState());
         assertEquals("Progression 3 doesn't match", subMachine1, machine.getCurrentState());
-        assertEquals("Progression 2 doesn't match", State.STATE_3, machine.getCurrentState().getCurrentState());
+        assertEquals("Progression 2 doesn't match", State.STATE_1, machine.getCurrentState().getCurrentState());
     }
 
     @Test

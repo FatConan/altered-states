@@ -1,6 +1,10 @@
 package de.themonstrouscavalca.alteredstates;
 
-public class StateChange<S, E, C, X>{
+import de.themonstrouscavalca.alteredstates.interfaces.IHoldContext;
+import de.themonstrouscavalca.alteredstates.interfaces.INameEvents;
+import de.themonstrouscavalca.alteredstates.interfaces.INameStates;
+
+public class StateChange<S extends INameStates, E extends INameEvents, C, X>{
     private final S fromState;
     private final S toState;
     private final E onEvent;
@@ -8,10 +12,9 @@ public class StateChange<S, E, C, X>{
     private final boolean externalTransitionSuccessful;
     private final boolean internalTransitionFound;
     private final boolean internalTransitionSuccessful;
-    private final C context;
-    private final X eventContext;
+    private final IHoldContext<E, C, X> contextHolder;
 
-    public StateChange(S fromState, S toState, E onEvent, C context, X eventContext,
+    public StateChange(S fromState, S toState, E onEvent, IHoldContext<E, C, X> contextHolder,
                        boolean externalTransitionFound, boolean externalTransitionSuccessful,
                        boolean internalTransitionFound, boolean internalTransitionSuccessful){
         this.fromState = fromState;
@@ -21,8 +24,7 @@ public class StateChange<S, E, C, X>{
         this.externalTransitionSuccessful = externalTransitionSuccessful;
         this.internalTransitionFound = internalTransitionFound;
         this.internalTransitionSuccessful = internalTransitionSuccessful;
-        this.context = context;
-        this.eventContext = eventContext;
+        this.contextHolder = contextHolder;
     }
 
     public S getFromState(){
@@ -61,11 +63,7 @@ public class StateChange<S, E, C, X>{
         return this.internalTransitionSuccessful || this.externalTransitionSuccessful;
     }
 
-    public C getContext(){
-        return context;
-    }
-
-    public X getEventContext(){
-        return eventContext;
+    public IHoldContext<E, C, X> getContextHolder(){
+        return contextHolder;
     }
 }

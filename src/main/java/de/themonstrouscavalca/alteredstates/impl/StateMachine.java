@@ -1,7 +1,11 @@
-package de.themonstrouscavalca.alteredstates;
+package de.themonstrouscavalca.alteredstates.impl;
 
-import de.themonstrouscavalca.alteredstates.interfaces.IConsumeEvents;
-import de.themonstrouscavalca.alteredstates.interfaces.INameStates;
+import de.themonstrouscavalca.alteredstates.*;
+import de.themonstrouscavalca.alteredstates.helpers.ContextHolder;
+import de.themonstrouscavalca.alteredstates.helpers.EventCheckAndAction;
+import de.themonstrouscavalca.alteredstates.helpers.InternalTransitionMap;
+import de.themonstrouscavalca.alteredstates.helpers.TransitionMap;
+import de.themonstrouscavalca.alteredstates.interfaces.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -13,7 +17,7 @@ import java.util.stream.Collectors;
  * @param <C> State context class
  * @param <X> Event context class
  */
-public class StateMachine<S extends INameStates, E, C, X> implements INameStates{
+public class StateMachine<S extends INameStates, E extends INameEvents, C, X> implements INameStates, IManageStates<S, E, C, X>{
     private final S initialState;
     private S currentState;
     private final List<S> states;
@@ -22,37 +26,28 @@ public class StateMachine<S extends INameStates, E, C, X> implements INameStates
     private final Map<E, List<Transition<S, E>>> eventMap;
     private final List<InternalTransition<S, E>> internalTransitions;
     private final Map<E, List<InternalTransition<S, E>>> internalEventMap;
-    private final Map<Transition<S, E>, IConsumeEvents<E, X, C>> handlerMap;
-    private final Map<InternalTransition<S,E>, IConsumeEvents<E, X, C>> internalHandlerMap;
+    private final TransitionMap<S, E, C, X> handlerMap;
+    private final InternalTransitionMap<S, E, C, X> internalHandlerMap;
     private final C context;
     private final String name;
 
-    public StateMachine(S initialState, List<S> states, List<E> events,
-                 List<Transition<S, E>> transitions,
-                 List<InternalTransition<S, E>> internalTransitions,
-                 Map<Transition<S, E>, IConsumeEvents<E, X, C>> handlerMap,
-                 Map<InternalTransition<S, E>, IConsumeEvents<E, X, C>> internalHandlerMap,
-                 C context, String name){
-        this.initialState = initialState;
+
+    public StateMachine(IExpressStateMachines<S, E, C, X> builder){
+        this.initialState = builder.getInitialState();
         this.currentState = initialState;
-        this.states = states;
-        this.events = events;
-        this.name = name;
+        this.states = builder.getFinalStates();
+        this.events = builder.getFinalEvents();
+        this.name = builder.getName();
 
-        this.handlerMap = handlerMap;
-        this.internalHandlerMap = internalHandlerMap;
+        this.handlerMap = builder.getHandlerMap();
+        this.internalHandlerMap = builder.getInternalHandlerMap();
 
-        this.transitions = transitions;
+        this.transitions = builder.getTransitions();
         this.eventMap = this.processExternalTransitions();
-        this.internalTransitions = internalTransitions;
+        this.internalTransitions = builder.getInternalTransitions();
         this.internalEventMap = this.processInternalTransitions();
 
-        this.context = context;
-    }
-
-    public static boolean checkGate(Boolean ... checks){
-        Set<Boolean> checkSet = Arrays.stream(checks).collect(Collectors.toSet());
-        return !checkSet.contains(false);
+        this.context = builder.getContext();
     }
 
     private Map<E, List<Transition<S, E>>> processExternalTransitions(){
@@ -135,25 +130,25 @@ public class StateMachine<S extends INameStates, E, C, X> implements INameStates
         return this.internalEventMap;
     }
 
-    public Map<Transition<S, E>, IConsumeEvents<E, X, C>> getHandlerMap(){
+    public TransitionMap<S, E, C, X> getHandlerMap(){
         return this.handlerMap;
     }
 
-    public Map<InternalTransition<S, E>, IConsumeEvents<E, X, C>> getInternalHandlerMap(){
+    public InternalTransitionMap<S, E, C, X> getInternalHandlerMap(){
         return this.internalHandlerMap;
     }
 
     public C getContext(){
         return this.context;
     }
-
-
-    public StateChange<S, E, C, X> onEvent(E event, X eventContext){
+    protected StateChange<S, E, C, X> handleEvent(E event, X eventContext){
         boolean externalTransitionFound = false;
         boolean externalTransitionSuccessful = false;
         boolean internalTransitionFound = false;
         boolean internalTransitionSuccessful = false;
         S initialState = this.currentState;
+
+        IHoldContext<E, C, X> contextHolder = new ContextHolder<>(event, this.context, eventContext);
 
         List<Transition<S, E>> transitions = this.eventMap.getOrDefault(event, Collections.emptyList());
         Optional<Transition<S, E>> selectedOpt = transitions.stream()
@@ -161,10 +156,12 @@ public class StateMachine<S extends INameStates, E, C, X> implements INameStates
 
         if(selectedOpt.isPresent()){
             externalTransitionFound = true;
-            boolean gate = this.handlerMap.get(selectedOpt.get()).process(event, eventContext, this.context);
+            EventCheckAndAction<E, C, X> checkAndAct = this.handlerMap.get(selectedOpt.get());
+            boolean gate = checkAndAct.getChecker().check(contextHolder);
             if(gate){
                 this.currentState = selectedOpt.get().getToState();;
                 externalTransitionSuccessful = true;
+                contextHolder = checkAndAct.getActor().act(contextHolder);
             }
         }
 
@@ -173,16 +170,21 @@ public class StateMachine<S extends INameStates, E, C, X> implements INameStates
                 .filter(t -> t.getState().equals(this.currentState)).findFirst();
 
         if(selectedInternalOpt.isPresent()){
+            EventCheckAndAction<E, C, X> checkAndAct = this.internalHandlerMap.get(selectedInternalOpt.get());
             internalTransitionFound = true;
-            boolean gate = this.internalHandlerMap.get(selectedInternalOpt.get()).process(event, eventContext, this.context);
+            boolean gate = checkAndAct.getChecker().check(contextHolder);
             if(gate){
                 internalTransitionSuccessful = true;
+                contextHolder = checkAndAct.getActor().act(contextHolder);
             }
         }
 
-        return new StateChange<>(initialState, this.currentState, event, context, eventContext,
+        return new StateChange<>(initialState, this.currentState, event, contextHolder,
                 externalTransitionFound, externalTransitionSuccessful,
                 internalTransitionFound, internalTransitionSuccessful);
+    }
+    public StateChange<S, E, C, X> onEvent(E event, X eventContext){
+        return this.handleEvent(event, eventContext);
     }
 
     public StateChange<S, E, C, X> onEvent(E event){
