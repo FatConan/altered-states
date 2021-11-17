@@ -1,6 +1,8 @@
 package de.themonstrouscavalca.alteredstates;
 
 import de.themonstrouscavalca.alteredstates.abs.AbstractStateMachineBuilder;
+import de.themonstrouscavalca.alteredstates.helpers.GateChecker;
+import de.themonstrouscavalca.alteredstates.helpers.TransitionsCheckAndActions;
 import de.themonstrouscavalca.alteredstates.impl.StateMachine;
 import de.themonstrouscavalca.alteredstates.impl.StateMachineBuilder;
 import de.themonstrouscavalca.alteredstates.interfaces.IManageStates;
@@ -219,12 +221,12 @@ public class StateMachineTest{
     }
 
     @Test
-    public void createMachineBuilder(){
+    public void MachineTransitionChecker(){
         SubMachine subMachine1 =
                 new SubMachineBuilder()
-                        .addTransition(State.STATE_1, State.STATE_2, Event.EVENT_1)
-                        .addTransition(State.STATE_2, State.STATE_3, Event.EVENT_2)
-                        .addTransition(State.STATE_3, State.STATE_1, Event.EVENT_3)
+                        .addTransition(State.STATE_1, State.STATE_2, Event.EVENT_1, (c) -> true, (c) -> c)
+                        .addTransition(State.STATE_2, State.STATE_3, Event.EVENT_2, (c) -> false, (c) -> c)
+                        .addTransition(State.STATE_3, State.STATE_1, Event.EVENT_3, (c) -> false, (c) -> c)
                         .setContext("TEST")
                         .setInitialState(State.STATE_1)
                         .build();
@@ -245,46 +247,23 @@ public class StateMachineTest{
 
         Machine machine =
                 new MachineBuilder()
-                        .addTransition(subMachine1, subMachine2, Event.EVENT_4)
-                        .addTransition(subMachine2, subMachine3, Event.EVENT_5)
+                        .addTransition(subMachine1, subMachine2, Event.EVENT_4, (c) -> false, (c) -> c)
+                        .addTransition(subMachine2, subMachine3, Event.EVENT_5, (c) -> GateChecker.checkGate(true, true, false), (c) -> c)
                         .addTransition(subMachine3, subMachine1, Event.EVENT_6)
                         .setInitialState(subMachine1)
                         .build();
 
-        assertEquals("Initial state doesn't match", subMachine1, machine.getCurrentState());
-        StateChange<SubMachine, Event, String, String> next  = machine.onEvent(Event.EVENT_1);
-        assertEquals("Progression 1 doesn't match", subMachine1, next.getToState());
-        assertEquals("Progression 1 doesn't match", subMachine1, machine.getCurrentState());
-        assertEquals("Progression 1 doesn't match", State.STATE_2, machine.getCurrentState().getCurrentState());
-
-        next  = machine.onEvent(Event.EVENT_1);
-        assertEquals("Progression 1 doesn't match", subMachine1, next.getToState());
-        assertEquals("Progression 1 doesn't match", subMachine1, machine.getCurrentState());
-        assertEquals("Progression 1 doesn't match", State.STATE_2, machine.getCurrentState().getCurrentState());
-
-        next = machine.onEvent(Event.EVENT_2);
-        assertEquals("Progression 1 doesn't match", subMachine1, next.getToState());
-        assertEquals("Progression 1 doesn't match", subMachine1, machine.getCurrentState());
-        assertEquals("Progression 1 doesn't match", State.STATE_3, machine.getCurrentState().getCurrentState());
-
-        next = machine.onEvent(Event.EVENT_4);
-        assertEquals("Progression 2 doesn't match", subMachine2, next.getToState());
-        assertEquals("Progression 2 doesn't match", subMachine2, machine.getCurrentState());
-        assertEquals("Progression 2 doesn't match", State.STATE_1, machine.getCurrentState().getCurrentState());
-
-        next = machine.onEvent(Event.EVENT_5);
-        assertEquals("Progression 2 doesn't match", subMachine3, next.getToState());
-        assertEquals("Progression 2 doesn't match", subMachine3, machine.getCurrentState());
-        assertEquals("Progression 2 doesn't match", State.STATE_3, machine.getCurrentState().getCurrentState());
-
-        next = machine.onEvent(Event.EVENT_1);
-        assertEquals("Progression 3 doesn't match", subMachine3, next.getToState());
-        assertEquals("Progression 3 doesn't match", subMachine3, machine.getCurrentState());
-        assertEquals("Progression 2 doesn't match", State.STATE_2, machine.getCurrentState().getCurrentState());
-
-        next = machine.onEvent(Event.EVENT_6);
-        assertEquals("Progression 3 doesn't match", subMachine1, next.getToState());
-        assertEquals("Progression 3 doesn't match", subMachine1, machine.getCurrentState());
-        assertEquals("Progression 2 doesn't match", State.STATE_3, machine.getCurrentState().getCurrentState());
+        TransitionsCheckAndActions<SubMachine, Event, String, String> transitions = machine.getTransitionsForState(subMachine1);
+        for(Transition<SubMachine, Event> t: transitions.getTransitions()){
+            assertEquals(transitions.getCheckAndAction(t).getChecker().check(null), false);
+        }
+        TransitionsCheckAndActions<State, Event, String, String> subTransitions = machine.getCurrentState().getTransitionsForState(State.STATE_1);
+        for(Transition<State, Event> t: subTransitions.getTransitions()){
+            assertEquals(subTransitions.getCheckAndAction(t).getChecker().check(null), true);
+        }
+        TransitionsCheckAndActions<SubMachine, Event, String, String> transitions2 = machine.getTransitionsForState(subMachine2);
+        for(Transition<SubMachine, Event> t: transitions2.getTransitions()){
+            assertEquals(transitions2.getCheckAndAction(t).getChecker().check(null), false);
+        }
     }
 }

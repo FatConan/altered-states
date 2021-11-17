@@ -80,7 +80,7 @@ public class TransitionsCheckAndActions<S extends INameStates, E extends INameEv
         for(InternalTransition<S, E> t: this.getInternalTransitions().stream()
                 .filter(t -> t.getState().equals(state))
                 .collect(Collectors.toList())){
-            stateSpecific.addTransition(t, this.getTransitionsMap().get(t));
+            stateSpecific.addTransition(t, this.getInternalTransitionsMap().get(t));
         }
         return stateSpecific;
     }
