@@ -14,6 +14,12 @@ public class ContextHolder<E extends INameEvents, C, X> implements IHoldContext<
         this.eventContext = eventContext;
     }
 
+    public ContextHolder(){
+        this.event = null;
+        this.context = null;
+        this.eventContext = null;
+    }
+
     @Override
     public E getEvent(){
         return this.event;

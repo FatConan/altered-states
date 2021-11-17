@@ -2,7 +2,7 @@ package de.themonstrouscavalca.alteredstates.interfaces;
 
 import de.themonstrouscavalca.alteredstates.StateChange;
 
-public interface IManageStates<S extends INameStates, E extends INameEvents, C, X>{
+public interface IManageStates<S extends INameStates, E extends INameEvents, C, X> extends INameStates{
     StateChange<S, E, C, X> onEvent(E event, X eventContext);
     StateChange<S, E, C, X> onEvent(E event);
     void setCurrentState(S state);

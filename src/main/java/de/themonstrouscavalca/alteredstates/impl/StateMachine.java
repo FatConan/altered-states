@@ -14,21 +14,14 @@ import java.util.stream.Collectors;
  * @param <C> State context class
  * @param <X> Event context class
  */
-public class StateMachine<S extends INameStates, E extends INameEvents, C, X> implements INameStates, IManageStates<S, E, C, X>{
+public class StateMachine<S extends INameStates, E extends INameEvents, C, X> implements IManageStates<S, E, C, X>{
     private final S initialState;
     private S currentState;
     private final List<S> states;
     private final List<E> events;
-    //private final List<Transition<S, E>> transitions;
-    //private final EventToTransitionMap<S, E> eventMap;
-    //private final List<InternalTransition<S, E>> internalTransitions;
-    //private final EventToInternalTransitionMap<S, E> internalEventMap;
-    //private final TransitionMap<S, E, C, X> handlerMap;
-    //private final InternalTransitionMap<S, E, C, X> internalHandlerMap;
     private final TransitionsCheckAndActions<S, E, C, X> handlerChecksAndActions;
     private final C context;
     private final String name;
-
 
     public StateMachine(IExpressStateMachines<S, E, C, X> builder){
         this.initialState = builder.getInitialState();

@@ -27,6 +27,10 @@ public class TransitionsCheckAndActions<S extends INameStates, E extends INameEv
         return eventMap;
     }
 
+    public Set<E> getEvents(){
+        return events;
+    }
+
     public EventToInternalTransitionMap<S, E> getInternalEventMap(){
         return internalEventMap;
     }
@@ -41,11 +45,13 @@ public class TransitionsCheckAndActions<S extends INameStates, E extends INameEv
 
     public void addTransition(Transition<S, E> transition, EventCheckAndAction<E, C, X> eventCheckAndAction){
         this.eventMap.addTransition(transition);
+        this.events.add(transition.getEvent());
         this.transitionCheckAndActions.put(transition, eventCheckAndAction);
     }
 
     public void addTransition(InternalTransition<S, E> transition, EventCheckAndAction<E, C, X> eventCheckAndAction){
         this.internalEventMap.addTransition(transition);
+        this.events.add(transition.getEvent());
         this.internalTransitionCheckAndActions.put(transition, eventCheckAndAction);
     }
 
