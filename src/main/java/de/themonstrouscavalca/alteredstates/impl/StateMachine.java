@@ -119,7 +119,7 @@ public class StateMachine<S extends INameStates, E extends INameEvents, C, X> im
         boolean internalTransitionSuccessful = false;
         S initialState = this.currentState;
 
-        IHoldContext<E, C, X> contextHolder = new ContextHolder<>(event, this.context, eventContext);
+        IHoldContext<E, C, X> contextHolder = new ContextHolder<>(event, this.getContext(), eventContext);
 
         Optional<Transition<S, E>> selectedOpt = this.handlerChecksAndActions.getTransitionForEventAndState(event, this.getCurrentState());
         if(selectedOpt.isPresent()){
