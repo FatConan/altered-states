@@ -51,4 +51,19 @@ public class ContextHolder<E extends INameEvents, C, X> implements IHoldContext<
     public void setEventContext(X eventContext){
         this.eventContext = Optional.ofNullable(eventContext);
     }
+
+    @Override
+    public boolean hasEvent(){
+        return this.getEvent().isPresent();
+    }
+
+    @Override
+    public boolean hasContext(){
+        return this.getContext().isPresent();
+    }
+
+    @Override
+    public boolean hasEventContext(){
+        return this.getEventContext().isPresent();
+    }
 }

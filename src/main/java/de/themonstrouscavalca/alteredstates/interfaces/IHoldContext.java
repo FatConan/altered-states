@@ -9,4 +9,7 @@ public interface IHoldContext<E extends INameEvents, C, X>{
     void setEvent(E event);
     void setContext(C context);
     void setEventContext(X eventContext);
+    boolean hasEvent();
+    boolean hasContext();
+    boolean hasEventContext();
 }
