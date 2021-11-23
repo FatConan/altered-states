@@ -6,6 +6,7 @@ import de.themonstrouscavalca.alteredstates.helpers.TransitionsCheckAndActions;
 import de.themonstrouscavalca.alteredstates.impl.StateMachine;
 import de.themonstrouscavalca.alteredstates.impl.StateMachineBuilder;
 import de.themonstrouscavalca.alteredstates.interfaces.IManageStates;
+import de.themonstrouscavalca.alteredstates.interfaces.IMonitorStateChanges;
 import de.themonstrouscavalca.alteredstates.interfaces.INameEvents;
 import de.themonstrouscavalca.alteredstates.interfaces.INameStates;
 import org.junit.Test;
@@ -51,8 +52,8 @@ public class StateMachineTest{
             super(builder);
         }
 
-        public StateChange<SubMachine, Event, String, String> onEvent(Event event, String eventContext){
-            StateChange<State, Event, String, String> internal = this.getCurrentState().onEvent(event, eventContext);
+        public IMonitorStateChanges<SubMachine, Event, String, String> onEvent(Event event, String eventContext){
+            IMonitorStateChanges<State, Event, String, String> internal = this.getCurrentState().onEvent(event, eventContext);
             return this.handleEvent(event, eventContext);
         }
     }
@@ -88,7 +89,7 @@ public class StateMachineTest{
         StateMachine<State, Event, String, String> machine = builder.build();
         assertEquals("Initial state doesn't match", State.STATE_1, machine.getCurrentState());
 
-        StateChange<State, Event, String, String> next  = machine.onEvent(Event.EVENT_1);
+        IMonitorStateChanges<State, Event, String, String> next  = machine.onEvent(Event.EVENT_1);
         assertEquals("Progression 1 doesn't match", State.STATE_2, next.getToState());
         assertEquals("Progression 1 doesn't match", State.STATE_2, machine.getCurrentState());
 
@@ -125,7 +126,7 @@ public class StateMachineTest{
         StateMachine<State, Event, String, String> machine = builder.build();
         assertEquals("Initial state doesn't match", State.STATE_1, machine.getCurrentState());
 
-        StateChange<State, Event, String, String> next  = machine.onEvent(Event.EVENT_1);
+        IMonitorStateChanges<State, Event, String, String> next  = machine.onEvent(Event.EVENT_1);
         assertEquals("Progression 1 doesn't match", State.STATE_2, next.getToState());
         assertEquals("Progression 1 doesn't match", State.STATE_2, machine.getCurrentState());
 
@@ -184,7 +185,7 @@ public class StateMachineTest{
                         .build();
 
         assertEquals("Initial state doesn't match", subMachine1, machine.getCurrentState());
-        StateChange<StateMachine<State, Event, String, String>, Event, String, String> next  = machine.onEvent(Event.EVENT_1);
+        IMonitorStateChanges<StateMachine<State, Event, String, String>, Event, String, String> next  = machine.onEvent(Event.EVENT_1);
         assertEquals("Progression 1 doesn't match", subMachine1, next.getToState());
         assertEquals("Progression 1 doesn't match", subMachine1, machine.getCurrentState());
         assertEquals("Progression 1 doesn't match", State.STATE_1, machine.getCurrentState().getCurrentState());

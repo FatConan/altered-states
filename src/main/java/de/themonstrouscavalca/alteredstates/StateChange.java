@@ -1,10 +1,11 @@
 package de.themonstrouscavalca.alteredstates;
 
 import de.themonstrouscavalca.alteredstates.interfaces.IHoldContext;
+import de.themonstrouscavalca.alteredstates.interfaces.IMonitorStateChanges;
 import de.themonstrouscavalca.alteredstates.interfaces.INameEvents;
 import de.themonstrouscavalca.alteredstates.interfaces.INameStates;
 
-public class StateChange<S extends INameStates, E extends INameEvents, C, X>{
+public class StateChange<S extends INameStates, E extends INameEvents, C, X> implements IMonitorStateChanges<S, E, C, X>{
     private final S fromState;
     private final S toState;
     private final E onEvent;
@@ -27,42 +28,52 @@ public class StateChange<S extends INameStates, E extends INameEvents, C, X>{
         this.contextHolder = contextHolder;
     }
 
+    @Override
     public S getFromState(){
         return fromState;
     }
 
+    @Override
     public S getToState(){
         return toState;
     }
 
+    @Override
     public E getOnEvent(){
         return onEvent;
     }
 
+    @Override
     public boolean isExternalTransitionFound(){
         return externalTransitionFound;
     }
 
+    @Override
     public boolean isExternalTransitionSuccessful(){
         return externalTransitionSuccessful;
     }
 
+    @Override
     public boolean isInternalTransitionFound(){
         return internalTransitionFound;
     }
 
+    @Override
     public boolean isInternalTransitionSuccessful(){
         return internalTransitionSuccessful;
     }
 
+    @Override
     public boolean transitionFound(){
         return this.internalTransitionFound || this.externalTransitionFound;
     }
 
+    @Override
     public boolean transitionSuccessful(){
         return this.internalTransitionSuccessful || this.externalTransitionSuccessful;
     }
-
+    
+    @Override
     public IHoldContext<E, C, X> getContextHolder(){
         return contextHolder;
     }

@@ -70,13 +70,13 @@ public class StateMachine<S extends INameStates, E extends INameEvents, C, X> im
     }
 
     public Events<E> getEventsForState(S state){
-        List<E> externalEvents = this.getTransitions().stream()
+        Set<E> externalEvents = this.getTransitions().stream()
                 .filter(t -> t.getFromState().equals(state))
                 .map(Transition::getEvent)
-                .collect(Collectors.toList());
-        List<E> internalEvents = this.getInternalTransitions().stream()
+                .collect(Collectors.toSet());
+        Set<E> internalEvents = this.getInternalTransitions().stream()
                 .filter(t -> t.getState().equals(state))
-                .map(InternalTransition::getEvent).collect(Collectors.toList());
+                .map(InternalTransition::getEvent).collect(Collectors.toSet());
         return new Events<>(externalEvents, internalEvents);
     }
 
@@ -112,7 +112,7 @@ public class StateMachine<S extends INameStates, E extends INameEvents, C, X> im
         return this.context;
     }
 
-    protected StateChange<S, E, C, X> handleEvent(E event, X eventContext){
+    protected IMonitorStateChanges<S, E, C, X> handleEvent(E event, X eventContext){
         boolean externalTransitionFound = false;
         boolean externalTransitionSuccessful = false;
         boolean internalTransitionFound = false;
@@ -148,11 +148,11 @@ public class StateMachine<S extends INameStates, E extends INameEvents, C, X> im
                 externalTransitionFound, externalTransitionSuccessful,
                 internalTransitionFound, internalTransitionSuccessful);
     }
-    public StateChange<S, E, C, X> onEvent(E event, X eventContext){
+    public IMonitorStateChanges<S, E, C, X> onEvent(E event, X eventContext){
         return this.handleEvent(event, eventContext);
     }
 
-    public StateChange<S, E, C, X> onEvent(E event){
+    public IMonitorStateChanges<S, E, C, X> onEvent(E event){
         return this.onEvent(event, null);
     }
 
