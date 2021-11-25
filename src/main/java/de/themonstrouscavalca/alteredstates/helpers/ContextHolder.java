@@ -3,67 +3,65 @@ package de.themonstrouscavalca.alteredstates.helpers;
 import de.themonstrouscavalca.alteredstates.interfaces.IHoldContext;
 import de.themonstrouscavalca.alteredstates.interfaces.INameEvents;
 
-import java.util.Optional;
-
 public class ContextHolder<E extends INameEvents, C, X> implements IHoldContext<E, C, X>{
-    private Optional<E> event;
-    private Optional<C> context;
-    private Optional<X> eventContext;
+    private E event;
+    private C context;
+    private X eventContext;
 
     public ContextHolder(E event, C context, X eventContext){
-        this.event = Optional.ofNullable(event);
-        this.context = Optional.ofNullable(context);
-        this.eventContext = Optional.ofNullable(eventContext);
+        this.event = event;
+        this.context = context;
+        this.eventContext = eventContext;
     }
 
     public ContextHolder(){
-        this.event = Optional.empty();
-        this.context = Optional.empty();
-        this.eventContext = Optional.empty();
+        this.event = null;
+        this.context = null;
+        this.eventContext = null;
     }
 
     @Override
-    public Optional<E> getEvent(){
+    public E getEvent(){
         return this.event;
     }
 
     @Override
-    public Optional<C> getContext(){
+    public C getContext(){
         return this.context;
     }
 
     @Override
-    public Optional<X> getEventContext(){
+    public X getEventContext(){
         return this.eventContext;
     }
 
     @Override
     public void setEvent(E event){
-        this.event = Optional.ofNullable(event);
+        this.event = event;
     }
 
     @Override
     public void setContext(C context){
-        this.context = Optional.ofNullable(context);
+        this.context = context;
     }
 
     @Override
     public void setEventContext(X eventContext){
-        this.eventContext = Optional.ofNullable(eventContext);
+        this.eventContext = eventContext;
     }
 
     @Override
     public boolean hasEvent(){
-        return this.getEvent().isPresent();
+        return this.getEvent() != null;
     }
 
     @Override
     public boolean hasContext(){
-        return this.getContext().isPresent();
+        return this.getContext() != null;
     }
 
     @Override
     public boolean hasEventContext(){
-        return this.getEventContext().isPresent();
+        return this.getEventContext() != null;
     }
 }
