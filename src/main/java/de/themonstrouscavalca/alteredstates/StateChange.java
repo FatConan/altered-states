@@ -10,20 +10,24 @@ public class StateChange<S extends INameStates, E extends INameEvents, C, X> imp
     private final S toState;
     private final E onEvent;
     private final boolean externalTransitionFound;
+    private final boolean externalTransitionPermitted;
     private final boolean externalTransitionSuccessful;
     private final boolean internalTransitionFound;
+    private final boolean internalTransitionPermitted;
     private final boolean internalTransitionSuccessful;
     private final IHoldContext<E, C, X> contextHolder;
 
     public StateChange(S fromState, S toState, E onEvent, IHoldContext<E, C, X> contextHolder,
-                       boolean externalTransitionFound, boolean externalTransitionSuccessful,
-                       boolean internalTransitionFound, boolean internalTransitionSuccessful){
+                       boolean externalTransitionFound, boolean externalTransitionPermitted, boolean externalTransitionSuccessful,
+                       boolean internalTransitionFound, boolean internalTransitionPermitted, boolean internalTransitionSuccessful){
         this.fromState = fromState;
         this.toState = toState;
         this.onEvent = onEvent;
         this.externalTransitionFound = externalTransitionFound;
+        this.externalTransitionPermitted = externalTransitionPermitted;
         this.externalTransitionSuccessful = externalTransitionSuccessful;
         this.internalTransitionFound = internalTransitionFound;
+        this.internalTransitionPermitted = internalTransitionPermitted;
         this.internalTransitionSuccessful = internalTransitionSuccessful;
         this.contextHolder = contextHolder;
     }
@@ -49,6 +53,11 @@ public class StateChange<S extends INameStates, E extends INameEvents, C, X> imp
     }
 
     @Override
+    public boolean isExternalTransitionPermitted(){
+        return externalTransitionPermitted;
+    }
+
+    @Override
     public boolean isExternalTransitionSuccessful(){
         return externalTransitionSuccessful;
     }
@@ -59,6 +68,11 @@ public class StateChange<S extends INameStates, E extends INameEvents, C, X> imp
     }
 
     @Override
+    public boolean isInternalTransitionPermitted(){
+        return internalTransitionPermitted;
+    }
+
+    @Override
     public boolean isInternalTransitionSuccessful(){
         return internalTransitionSuccessful;
     }
@@ -66,6 +80,12 @@ public class StateChange<S extends INameStates, E extends INameEvents, C, X> imp
     @Override
     public boolean transitionFound(){
         return this.internalTransitionFound || this.externalTransitionFound;
+    }
+
+    @Override
+    public boolean transitionPermitted(){
+        return (this.internalTransitionFound && this.internalTransitionPermitted) ||
+                (this.externalTransitionFound && this.externalTransitionPermitted);
     }
 
     @Override

@@ -16,11 +16,15 @@ public class TransitionsCheckAndActions<S extends INameStates, E extends INameEv
     private InternalTransitionToCheckAndActionMap<S, E, C, X> internalTransitionCheckAndActions = new InternalTransitionToCheckAndActionMap<>();
 
     public List<Transition<S, E>> getTransitions(){
-        return new ArrayList<>(this.transitionCheckAndActions.keySet());
+        List<Transition<S, E>> transitions = new ArrayList<>(this.transitionCheckAndActions.keySet());
+        transitions.sort(Comparator.comparing(Transition::getLabel));
+        return transitions;
     }
 
     public List<InternalTransition<S, E>> getInternalTransitions(){
-        return new ArrayList<>(this.internalTransitionCheckAndActions.keySet());
+        List<InternalTransition<S, E>> transitions = new ArrayList<>(this.internalTransitionCheckAndActions.keySet());
+        transitions.sort(Comparator.comparing(InternalTransition::getLabel));
+        return transitions;
     }
 
     public EventToTransitionMap<S, E> getEventMap(){

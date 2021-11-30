@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- *
  * @param <S> State class
  * @param <E> Event class
  * @param <C> Current context
@@ -43,30 +42,53 @@ public abstract class AbstractStateMachineBuilder<S extends INameStates,
     }
 
     public AbstractStateMachineBuilder<S, E, C, X, T> addTransition(S from, S to, E onEvent,
+                                                                    String label,
                                                                     ICheckEvents<E, C, X> updateCheck,
                                                                     ITakeAction<E, C, X> actionTaker
-                                                                    ){
-        Transition<S, E> transition = new Transition<>(from, to, onEvent);
+    ){
+        Transition<S, E> transition = new Transition<>(from, to, onEvent, label);
         this.transitions.add(transition);
         this.handlerMap.put(transition, new EventCheckAndAction<E, C, X>(updateCheck, actionTaker));
         return this;
     }
 
+    public AbstractStateMachineBuilder<S, E, C, X, T> addTransition(S from, S to, E onEvent,
+                                                                    ICheckEvents<E, C, X> updateCheck,
+                                                                    ITakeAction<E, C, X> actionTaker
+    ){
+        return this.addTransition(from, to, onEvent, "", updateCheck, actionTaker);
+    }
+
+    public AbstractStateMachineBuilder<S, E, C, X, T> addTransition(S from, S to, E onEvent, String label){
+        return this.addTransition(from, to, onEvent, label, (contextHolder) -> true, (contextHolder) -> contextHolder);
+    }
+
     public AbstractStateMachineBuilder<S, E, C, X, T> addTransition(S from, S to, E onEvent){
-       return this.addTransition(from, to, onEvent, (contextHolder) -> true, (contextHolder) -> contextHolder);
+        return this.addTransition(from, to, onEvent, "", (contextHolder) -> true, (contextHolder) -> contextHolder);
     }
 
     public AbstractStateMachineBuilder<S, E, C, X, T> addInternalTransition(S state, E onEvent,
+                                                                            String label,
                                                                             ICheckEvents<E, C, X> updateCheck,
                                                                             ITakeAction<E, C, X> actionTaker){
-        InternalTransition<S, E> transition = new InternalTransition<>(state, onEvent);
+        InternalTransition<S, E> transition = new InternalTransition<>(state, onEvent, label);
         this.internalTransitions.add(transition);
         this.internalHandlerMap.put(transition, new EventCheckAndAction<E, C, X>(updateCheck, actionTaker));
         return this;
     }
 
+    public AbstractStateMachineBuilder<S, E, C, X, T> addInternalTransition(S state, E onEvent,
+                                                                            ICheckEvents<E, C, X> updateCheck,
+                                                                            ITakeAction<E, C, X> actionTaker){
+        return this.addInternalTransition(state, onEvent, "", updateCheck, actionTaker);
+    }
+
+    public AbstractStateMachineBuilder<S, E, C, X, T> addInternalTransition(S state, E onEvent, String label){
+        return this.addInternalTransition(state, onEvent, label, (contextHolder) -> true, (contextHolder) -> contextHolder);
+    }
+
     public AbstractStateMachineBuilder<S, E, C, X, T> addInternalTransition(S state, E onEvent){
-        return this.addInternalTransition(state, onEvent, (contextHolder) -> true, (contextHolder) -> contextHolder);
+        return this.addInternalTransition(state, onEvent, "", (contextHolder) -> true, (contextHolder) -> contextHolder);
     }
 
     public AbstractStateMachineBuilder<S, E, C, X, T> setName(String name){

@@ -21,7 +21,6 @@ public class Events<E extends INameEvents>{
     public List<E> getExternalEvents(){
         return externalEvents;
     }
-
     public List<E> getInternalEvents(){
         return internalEvents;
     }

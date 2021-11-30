@@ -6,10 +6,13 @@ public interface IMonitorStateChanges<S extends INameStates, E extends INameEven
     E getOnEvent();
 
     boolean isExternalTransitionFound();
+    boolean isExternalTransitionPermitted();
     boolean isExternalTransitionSuccessful();
     boolean isInternalTransitionFound();
+    boolean isInternalTransitionPermitted();
     boolean isInternalTransitionSuccessful();
     boolean transitionFound();
+    boolean transitionPermitted();
     boolean transitionSuccessful();
     
     IHoldContext<E, C, X> getContextHolder();

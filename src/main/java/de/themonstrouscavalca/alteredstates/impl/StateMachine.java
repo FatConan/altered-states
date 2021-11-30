@@ -114,9 +114,12 @@ public class StateMachine<S extends INameStates, E extends INameEvents, C, X> im
 
     protected IMonitorStateChanges<S, E, C, X> handleEvent(E event, X eventContext){
         boolean externalTransitionFound = false;
+        boolean externalTransitionPermitted = false;
         boolean externalTransitionSuccessful = false;
         boolean internalTransitionFound = false;
+        boolean internalTransitionPermitted = false;
         boolean internalTransitionSuccessful = false;
+
         S initialState = this.currentState;
 
         IHoldContext<E, C, X> contextHolder = new ContextHolder<>(event, this.getContext(), eventContext);
@@ -126,6 +129,7 @@ public class StateMachine<S extends INameStates, E extends INameEvents, C, X> im
             externalTransitionFound = true;
             EventCheckAndAction<E, C, X> checkAndAct = this.handlerChecksAndActions.getCheckAndAction(selectedOpt.get());
             boolean gate = checkAndAct.getChecker().check(contextHolder);
+            externalTransitionPermitted = gate;
             if(gate){
                 this.currentState = selectedOpt.get().getToState();;
                 externalTransitionSuccessful = true;
@@ -138,6 +142,7 @@ public class StateMachine<S extends INameStates, E extends INameEvents, C, X> im
             EventCheckAndAction<E, C, X> checkAndAct = this.handlerChecksAndActions.getCheckAndAction(selectedInternalOpt.get());
             internalTransitionFound = true;
             boolean gate = checkAndAct.getChecker().check(contextHolder);
+            internalTransitionPermitted = gate;
             if(gate){
                 internalTransitionSuccessful = true;
                 contextHolder = checkAndAct.getActor().act(contextHolder);
@@ -145,8 +150,8 @@ public class StateMachine<S extends INameStates, E extends INameEvents, C, X> im
         }
 
         return new StateChange<>(initialState, this.currentState, event, contextHolder,
-                externalTransitionFound, externalTransitionSuccessful,
-                internalTransitionFound, internalTransitionSuccessful);
+                externalTransitionFound, externalTransitionPermitted, externalTransitionSuccessful,
+                internalTransitionFound, internalTransitionPermitted, internalTransitionSuccessful);
     }
     public IMonitorStateChanges<S, E, C, X> onEvent(E event, X eventContext){
         return this.handleEvent(event, eventContext);
