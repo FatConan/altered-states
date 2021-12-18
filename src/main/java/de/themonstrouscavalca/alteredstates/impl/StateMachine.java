@@ -15,13 +15,13 @@ import java.util.stream.Collectors;
  * @param <X> Event context class
  */
 public class StateMachine<S extends INameStates, E extends INameEvents, C, X> implements IManageStates<S, E, C, X>{
-    private final S initialState;
-    private S currentState;
-    private final List<S> states;
-    private final List<E> events;
-    private final TransitionsCheckAndActions<S, E, C, X> handlerChecksAndActions;
-    private final C context;
-    private final String name;
+    protected final S initialState;
+    protected S currentState;
+    protected final List<S> states;
+    protected final List<E> events;
+    protected final TransitionsCheckAndActions<S, E, C, X> handlerChecksAndActions;
+    protected final C context;
+    protected final String name;
 
     public StateMachine(IExpressStateMachines<S, E, C, X> builder){
         this.initialState = builder.getInitialState();
@@ -122,9 +122,11 @@ public class StateMachine<S extends INameStates, E extends INameEvents, C, X> im
 
         S initialState = this.currentState;
 
+        final IHoldContext<E, C, X> initialTestContext = new ContextHolder<>(event, this.getContext(), eventContext);
         IHoldContext<E, C, X> contextHolder = new ContextHolder<>(event, this.getContext(), eventContext);
 
-        Optional<Transition<S, E>> selectedOpt = this.handlerChecksAndActions.getTransitionForEventAndState(event, this.getCurrentState());
+        List<Transition<S, E>> selected = this.handlerChecksAndActions.getTransitionForEventAndState(event, this.getCurrentState());
+        Optional<Transition<S, E>> selectedOpt = selected.stream().filter(t -> this.handlerChecksAndActions.getCheckAndAction(t).getChecker().check(initialTestContext)).findFirst();
         if(selectedOpt.isPresent()){
             externalTransitionFound = true;
             EventCheckAndAction<E, C, X> checkAndAct = this.handlerChecksAndActions.getCheckAndAction(selectedOpt.get());
@@ -137,7 +139,8 @@ public class StateMachine<S extends INameStates, E extends INameEvents, C, X> im
             }
         }
 
-        Optional<InternalTransition<S, E>> selectedInternalOpt = this.handlerChecksAndActions.getInternalTransitionForEventAndState(event, this.getCurrentState());
+        List<InternalTransition<S, E>> selectedInternal = this.handlerChecksAndActions.getInternalTransitionForEventAndState(event, this.getCurrentState());
+        Optional<InternalTransition<S, E>> selectedInternalOpt = selectedInternal.stream().filter(t -> this.handlerChecksAndActions.getCheckAndAction(t).getChecker().check(initialTestContext)).findFirst();
         if(selectedInternalOpt.isPresent()){
             EventCheckAndAction<E, C, X> checkAndAct = this.handlerChecksAndActions.getCheckAndAction(selectedInternalOpt.get());
             internalTransitionFound = true;

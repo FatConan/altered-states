@@ -59,18 +59,32 @@ public class TransitionsCheckAndActions<S extends INameStates, E extends INameEv
         this.internalTransitionCheckAndActions.put(transition, eventCheckAndAction);
     }
 
-    public Optional<Transition<S, E>> getTransitionForEventAndState(E event, S state){
+    /*public Optional<Transition<S, E>> getTransitionForEventAndState(E event, S state){
         List<Transition<S, E>> transitionsForEvent = this.eventMap.getOrDefault(event, Collections.emptyList());
         Optional<Transition<S, E>> selectedOpt = transitionsForEvent.stream()
                 .filter(t -> t.getFromState().equals(state)).findFirst();
         return selectedOpt;
+    }*/
+
+    public List<Transition<S, E>> getTransitionForEventAndState(E event, S state){
+        List<Transition<S, E>> transitionsForEvent = this.eventMap.getOrDefault(event, Collections.emptyList());
+        List<Transition<S, E>> selected = transitionsForEvent.stream()
+                .filter(t -> t.getFromState().equals(state)).collect(Collectors.toList());
+        return selected;
     }
 
-    public Optional<InternalTransition<S, E>> getInternalTransitionForEventAndState(E event, S state){
+    /*public Optional<InternalTransition<S, E>> getInternalTransitionForEventAndState(E event, S state){
         List<InternalTransition<S, E>> transitionsForEvent = this.internalEventMap.getOrDefault(event, Collections.emptyList());
         Optional<InternalTransition<S, E>> selectedOpt = transitionsForEvent.stream()
                 .filter(t -> t.getState().equals(state)).findFirst();
         return selectedOpt;
+    }*/
+
+    public List<InternalTransition<S, E>> getInternalTransitionForEventAndState(E event, S state){
+        List<InternalTransition<S, E>> transitionsForEvent = this.internalEventMap.getOrDefault(event, Collections.emptyList());
+        List<InternalTransition<S, E>> selected = transitionsForEvent.stream()
+                .filter(t -> t.getState().equals(state)).collect(Collectors.toList());
+        return selected;
     }
 
     public TransitionsCheckAndActions<S, E, C, X> getForState(S state){
