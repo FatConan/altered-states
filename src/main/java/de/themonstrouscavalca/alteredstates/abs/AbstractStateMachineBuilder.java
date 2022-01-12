@@ -67,6 +67,34 @@ public abstract class AbstractStateMachineBuilder<S extends INameStates,
         return this.addTransition(from, to, onEvent, "", (contextHolder) -> true, (contextHolder) -> contextHolder);
     }
 
+    //Make a distinction for adding privileged transitions
+    public AbstractStateMachineBuilder<S, E, C, X, T> addPrivilegedTransition(S from, S to, E onEvent,
+                                                                    String label,
+                                                                    ICheckEvents<E, C, X> updateCheck,
+                                                                    ITakeAction<E, C, X> actionTaker
+    ){
+        Transition<S, E> transition = new Transition<>(from, to, onEvent, label, true);
+        this.transitions.add(transition);
+        this.handlerMap.put(transition, new EventCheckAndAction<E, C, X>(updateCheck, actionTaker));
+        return this;
+    }
+
+    public AbstractStateMachineBuilder<S, E, C, X, T> addPrivilegedTransition(S from, S to, E onEvent,
+                                                                    ICheckEvents<E, C, X> updateCheck,
+                                                                    ITakeAction<E, C, X> actionTaker
+    ){
+        return this.addPrivilegedTransition(from, to, onEvent, "", updateCheck, actionTaker);
+    }
+
+    public AbstractStateMachineBuilder<S, E, C, X, T> addPrivilegedTransition(S from, S to, E onEvent, String label){
+        return this.addPrivilegedTransition(from, to, onEvent, label, (contextHolder) -> true, (contextHolder) -> contextHolder);
+    }
+
+    public AbstractStateMachineBuilder<S, E, C, X, T> addPrivilegedTransition(S from, S to, E onEvent){
+        return this.addPrivilegedTransition(from, to, onEvent, "", (contextHolder) -> true, (contextHolder) -> contextHolder);
+    }
+
+
     public AbstractStateMachineBuilder<S, E, C, X, T> addInternalTransition(S state, E onEvent,
                                                                             String label,
                                                                             ICheckEvents<E, C, X> updateCheck,
@@ -89,6 +117,31 @@ public abstract class AbstractStateMachineBuilder<S extends INameStates,
 
     public AbstractStateMachineBuilder<S, E, C, X, T> addInternalTransition(S state, E onEvent){
         return this.addInternalTransition(state, onEvent, "", (contextHolder) -> true, (contextHolder) -> contextHolder);
+    }
+
+    //Add privileged internal transitions
+    public AbstractStateMachineBuilder<S, E, C, X, T> addPrivilegedInternalTransition(S state, E onEvent,
+                                                                            String label,
+                                                                            ICheckEvents<E, C, X> updateCheck,
+                                                                            ITakeAction<E, C, X> actionTaker){
+        InternalTransition<S, E> transition = new InternalTransition<>(state, onEvent, label, true);
+        this.internalTransitions.add(transition);
+        this.internalHandlerMap.put(transition, new EventCheckAndAction<E, C, X>(updateCheck, actionTaker));
+        return this;
+    }
+
+    public AbstractStateMachineBuilder<S, E, C, X, T> addPrivilegedInternalTransition(S state, E onEvent,
+                                                                            ICheckEvents<E, C, X> updateCheck,
+                                                                            ITakeAction<E, C, X> actionTaker){
+        return this.addPrivilegedInternalTransition(state, onEvent, "", updateCheck, actionTaker);
+    }
+
+    public AbstractStateMachineBuilder<S, E, C, X, T> addPrivilegedInternalTransition(S state, E onEvent, String label){
+        return this.addPrivilegedInternalTransition(state, onEvent, label, (contextHolder) -> true, (contextHolder) -> contextHolder);
+    }
+
+    public AbstractStateMachineBuilder<S, E, C, X, T> addPrivilegedInternalTransition(S state, E onEvent){
+        return this.addPrivilegedInternalTransition(state, onEvent, "", (contextHolder) -> true, (contextHolder) -> contextHolder);
     }
 
     public AbstractStateMachineBuilder<S, E, C, X, T> setName(String name){
