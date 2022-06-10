@@ -71,11 +71,11 @@ public class StateMachine<S extends INameStates, E extends INameEvents, C, X> im
 
     public Events<E> getEventsForState(S state){
         Set<E> externalEvents = this.getTransitions().stream()
-                .filter(t -> t.getFromState().equals(state))
+                .filter(t -> t.getFromStates().matches(state))
                 .map(Transition::getEvent)
                 .collect(Collectors.toSet());
         Set<E> internalEvents = this.getInternalTransitions().stream()
-                .filter(t -> t.getState().equals(state))
+                .filter(t -> t.getStates().matches(state))
                 .map(InternalTransition::getEvent).collect(Collectors.toSet());
         return new Events<>(externalEvents, internalEvents);
     }
@@ -174,7 +174,7 @@ public class StateMachine<S extends INameStates, E extends INameEvents, C, X> im
 
     public List<Transition<S, E>> getAvailableTransitions(){
         return this.handlerChecksAndActions.getTransitions().stream()
-                .filter(t -> t.getFromState().equals(this.currentState))
+                .filter(t -> t.getFromStates().matches(this.currentState))
                 .collect(Collectors.toList());
     }
 }
