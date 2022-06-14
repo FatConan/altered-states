@@ -10,8 +10,9 @@ import org.junit.Test;
 
 import static junit.framework.TestCase.*;
 
+/* A more "real world" example of what can be done with the state machines */
 public class LightingExampleTest{
-    public static class LightBulb{
+    private static class LightBulb{
         private String color;
         private int strobeFrequency;
         private boolean on;
@@ -41,7 +42,7 @@ public class LightingExampleTest{
         }
     }
 
-    public enum LightingState implements INameStates{
+    private enum LightingState implements INameStates{
         SOLID,
         BLINKING,
         STROBING,
@@ -53,7 +54,7 @@ public class LightingExampleTest{
         }
     }
 
-    public enum LightingEvent implements INameEvents{
+    private enum LightingEvent implements INameEvents{
         SOLID,
         BLINK,
         STROBE,
@@ -67,7 +68,7 @@ public class LightingExampleTest{
         }
     }
 
-    public static class LightBulbSettings{
+    private static class LightBulbSettings{
         private String color;
         private int frequency = -1;
 
@@ -92,23 +93,23 @@ public class LightingExampleTest{
         }
     }
 
-    public static class BulbMachineBuilder
-            extends AbstractStateMachineBuilder<LightingState, LightingEvent, LightBulb, LightBulbSettings, BulbMachine>{
-        @Override
-        protected BulbMachine createInstance(){
-            return new BulbMachine(this);
-        }
-    }
-
-    public static class BulbMachine extends StateMachine<LightingState, LightingEvent, LightBulb, LightBulbSettings>
+    private static class BulbMachine extends StateMachine<LightingState, LightingEvent, LightBulb, LightBulbSettings>
             implements IManageStates<LightingState, LightingEvent, LightBulb, LightBulbSettings>{
+        private static class BulbMachineBuilder
+                extends AbstractStateMachineBuilder<LightingState, LightingEvent, LightBulb, LightBulbSettings, BulbMachine>{
+            @Override
+            protected BulbMachine createInstance(){
+                return new BulbMachine(this);
+            }
+        }
+
         public BulbMachine(BulbMachineBuilder builder){
             super(builder);
         }
     }
 
     private BulbMachine bulbMachine(LightBulb lightBulb){
-        BulbMachineBuilder bulbBuilder = new BulbMachineBuilder();
+        BulbMachine.BulbMachineBuilder bulbBuilder = new BulbMachine.BulbMachineBuilder();
         return bulbBuilder
                 .addTransition(StateCollection.not(LightingState.SOLID), LightingState.SOLID, LightingEvent.SOLID,
                         (contextHolder) -> true,
