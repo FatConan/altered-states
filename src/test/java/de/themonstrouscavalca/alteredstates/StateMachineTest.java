@@ -9,6 +9,7 @@ import de.themonstrouscavalca.alteredstates.interfaces.IManageStates;
 import de.themonstrouscavalca.alteredstates.interfaces.IMonitorStateChanges;
 import de.themonstrouscavalca.alteredstates.interfaces.INameEvents;
 import de.themonstrouscavalca.alteredstates.interfaces.INameStates;
+import de.themonstrouscavalca.alteredstates.transitions.Transition;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -255,15 +256,15 @@ public class StateMachineTest{
                         .build();
 
         TransitionsCheckAndActions<SubMachine, Event, String, String> transitions = machine.getTransitionsForState(subMachine1);
-        for(Transition<SubMachine, Event> t: transitions.getTransitions()){
+        for(Transition<SubMachine, Event, String, String> t: transitions.getTransitions()){
             assertEquals(transitions.getCheckAndAction(t).getChecker().check(null), false);
         }
         TransitionsCheckAndActions<State, Event, String, String> subTransitions = machine.getCurrentState().getTransitionsForState(State.STATE_1);
-        for(Transition<State, Event> t: subTransitions.getTransitions()){
+        for(Transition<State, Event, String, String> t: subTransitions.getTransitions()){
             assertEquals(subTransitions.getCheckAndAction(t).getChecker().check(null), true);
         }
         TransitionsCheckAndActions<SubMachine, Event, String, String> transitions2 = machine.getTransitionsForState(subMachine2);
-        for(Transition<SubMachine, Event> t: transitions2.getTransitions()){
+        for(Transition<SubMachine, Event, String, String> t: transitions2.getTransitions()){
             assertEquals(transitions2.getCheckAndAction(t).getChecker().check(null), false);
         }
     }

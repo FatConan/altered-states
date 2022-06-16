@@ -1,6 +1,6 @@
 package de.themonstrouscavalca.alteredstates.helpers;
 
-import de.themonstrouscavalca.alteredstates.InternalTransition;
+import de.themonstrouscavalca.alteredstates.transitions.InternalTransition;
 import de.themonstrouscavalca.alteredstates.interfaces.INameEvents;
 import de.themonstrouscavalca.alteredstates.interfaces.INameStates;
 

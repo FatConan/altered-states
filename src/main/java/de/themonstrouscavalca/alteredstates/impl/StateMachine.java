@@ -3,6 +3,9 @@ package de.themonstrouscavalca.alteredstates.impl;
 import de.themonstrouscavalca.alteredstates.*;
 import de.themonstrouscavalca.alteredstates.helpers.*;
 import de.themonstrouscavalca.alteredstates.interfaces.*;
+import de.themonstrouscavalca.alteredstates.transitions.InternalTransition;
+import de.themonstrouscavalca.alteredstates.transitions.StateChange;
+import de.themonstrouscavalca.alteredstates.transitions.Transition;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -17,7 +20,7 @@ import java.util.stream.Collectors;
 public class StateMachine<S extends INameStates, E extends INameEvents, C, X> implements IManageStates<S, E, C, X>{
     protected final S initialState;
     protected S currentState;
-    protected final List<S> states;
+    protected final List<IGenerateState<S, E, C, X>> states;
     protected final List<E> events;
     protected final TransitionsCheckAndActions<S, E, C, X> handlerChecksAndActions;
     protected final C context;
@@ -40,7 +43,7 @@ public class StateMachine<S extends INameStates, E extends INameEvents, C, X> im
 
     private void processExternalTransitions(IExpressStateMachines<S, E, C, X> builder,
                                                                   TransitionsCheckAndActions<S, E, C, X> transitionsAndChecks){
-        for(Transition<S, E> transition : builder.getTransitions()){
+        for(Transition<S, E, C, X> transition : builder.getTransitions()){
             transitionsAndChecks.addTransition(transition, builder.getHandlerMap().get(transition));
         }
     }
@@ -61,7 +64,7 @@ public class StateMachine<S extends INameStates, E extends INameEvents, C, X> im
         return this.name;
     }
 
-    public List<S> getStates(){
+    public List<IGenerateState<S, E, C, X>> getStates(){
         return this.states;
     }
 
@@ -84,11 +87,11 @@ public class StateMachine<S extends INameStates, E extends INameEvents, C, X> im
         return this.handlerChecksAndActions.getForState(state);
     }
 
-    public List<Transition<S, E>> getTransitions(){
+    public List<Transition<S, E, C, X>> getTransitions(){
         return this.handlerChecksAndActions.getTransitions();
     }
 
-    public EventToTransitionMap<S, E> getEventMap(){
+    public EventToTransitionMap<S, E, C, X> getEventMap(){
         return this.handlerChecksAndActions.getEventMap();
     }
 
@@ -125,15 +128,15 @@ public class StateMachine<S extends INameStates, E extends INameEvents, C, X> im
         final IHoldContext<E, C, X> initialTestContext = new ContextHolder<>(event, this.getContext(), eventContext);
         IHoldContext<E, C, X> contextHolder = new ContextHolder<>(event, this.getContext(), eventContext);
 
-        List<Transition<S, E>> selected = this.handlerChecksAndActions.getTransitionForEventAndState(event, this.getCurrentState());
-        Optional<Transition<S, E>> selectedOpt = selected.stream().filter(t -> this.handlerChecksAndActions.getCheckAndAction(t).getChecker().check(initialTestContext)).findFirst();
+        List<Transition<S, E, C, X>> selected = this.handlerChecksAndActions.getTransitionForEventAndState(event, this.getCurrentState());
+        Optional<Transition<S, E, C, X>> selectedOpt = selected.stream().filter(t -> this.handlerChecksAndActions.getCheckAndAction(t).getChecker().check(initialTestContext)).findFirst();
         if(selectedOpt.isPresent()){
             externalTransitionFound = true;
             EventCheckAndAction<E, C, X> checkAndAct = this.handlerChecksAndActions.getCheckAndAction(selectedOpt.get());
             boolean gate = checkAndAct.getChecker().check(contextHolder);
             externalTransitionPermitted = gate;
             if(gate){
-                this.currentState = selectedOpt.get().getToState();;
+                this.currentState = selectedOpt.get().getToState(event, this.getContext(), eventContext);
                 externalTransitionSuccessful = true;
                 contextHolder = checkAndAct.getActor().act(contextHolder);
             }
@@ -172,7 +175,7 @@ public class StateMachine<S extends INameStates, E extends INameEvents, C, X> im
         return this.currentState;
     }
 
-    public List<Transition<S, E>> getAvailableTransitions(){
+    public List<Transition<S, E, C, X>> getAvailableTransitions(){
         return this.handlerChecksAndActions.getTransitions().stream()
                 .filter(t -> t.getFromStates().matches(this.currentState))
                 .collect(Collectors.toList());

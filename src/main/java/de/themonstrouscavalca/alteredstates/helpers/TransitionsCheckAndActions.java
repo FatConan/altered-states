@@ -1,7 +1,7 @@
 package de.themonstrouscavalca.alteredstates.helpers;
 
-import de.themonstrouscavalca.alteredstates.InternalTransition;
-import de.themonstrouscavalca.alteredstates.Transition;
+import de.themonstrouscavalca.alteredstates.transitions.InternalTransition;
+import de.themonstrouscavalca.alteredstates.transitions.Transition;
 import de.themonstrouscavalca.alteredstates.interfaces.INameEvents;
 import de.themonstrouscavalca.alteredstates.interfaces.INameStates;
 
@@ -10,13 +10,13 @@ import java.util.stream.Collectors;
 
 public class TransitionsCheckAndActions<S extends INameStates, E extends INameEvents, C, X>{
     private Set<E> events = new LinkedHashSet<>();
-    private EventToTransitionMap<S, E> eventMap = new EventToTransitionMap<>();
+    private EventToTransitionMap<S, E, C, X> eventMap = new EventToTransitionMap<>();
     private EventToInternalTransitionMap<S, E> internalEventMap = new EventToInternalTransitionMap<>();
     private TransitionToCheckAndActionMap<S, E, C, X> transitionCheckAndActions = new TransitionToCheckAndActionMap<>();
     private InternalTransitionToCheckAndActionMap<S, E, C, X> internalTransitionCheckAndActions = new InternalTransitionToCheckAndActionMap<>();
 
-    public List<Transition<S, E>> getTransitions(){
-        List<Transition<S, E>> transitions = new ArrayList<>(this.transitionCheckAndActions.keySet());
+    public List<Transition<S, E, C, X>> getTransitions(){
+        List<Transition<S, E, C, X>> transitions = new ArrayList<Transition<S, E, C, X>>(this.transitionCheckAndActions.keySet());
         transitions.sort(Comparator.comparing(Transition::getLabel));
         return transitions;
     }
@@ -27,7 +27,7 @@ public class TransitionsCheckAndActions<S extends INameStates, E extends INameEv
         return transitions;
     }
 
-    public EventToTransitionMap<S, E> getEventMap(){
+    public EventToTransitionMap<S, E, C, X> getEventMap(){
         return eventMap;
     }
 
@@ -47,7 +47,7 @@ public class TransitionsCheckAndActions<S extends INameStates, E extends INameEv
         return this.internalTransitionCheckAndActions;
     }
 
-    public void addTransition(Transition<S, E> transition, EventCheckAndAction<E, C, X> eventCheckAndAction){
+    public void addTransition(Transition<S, E, C, X> transition, EventCheckAndAction<E, C, X> eventCheckAndAction){
         this.eventMap.addTransition(transition);
         this.events.add(transition.getEvent());
         this.transitionCheckAndActions.put(transition, eventCheckAndAction);
@@ -59,9 +59,9 @@ public class TransitionsCheckAndActions<S extends INameStates, E extends INameEv
         this.internalTransitionCheckAndActions.put(transition, eventCheckAndAction);
     }
 
-    public List<Transition<S, E>> getTransitionForEventAndState(E event, S state){
-        List<Transition<S, E>> transitionsForEvent = this.eventMap.getOrDefault(event, Collections.emptyList());
-        List<Transition<S, E>> selected = transitionsForEvent.stream()
+    public List<Transition<S, E, C, X>> getTransitionForEventAndState(E event, S state){
+        List<Transition<S, E, C, X>> transitionsForEvent = this.eventMap.getOrDefault(event, Collections.emptyList());
+        List<Transition<S, E, C, X>> selected = transitionsForEvent.stream()
                 .filter(t -> t.getFromStates().matches(state))
                 .collect(Collectors.toList());
         return selected;
@@ -76,7 +76,7 @@ public class TransitionsCheckAndActions<S extends INameStates, E extends INameEv
 
     public TransitionsCheckAndActions<S, E, C, X> getForState(S state){
         TransitionsCheckAndActions<S, E, C, X> stateSpecific = new TransitionsCheckAndActions<>();
-        for(Transition<S, E> t: this.getTransitions().stream()
+        for(Transition<S, E, C, X> t: this.getTransitions().stream()
                 .filter(t -> t.getFromStates().matches(state))
                 .collect(Collectors.toList())){
             stateSpecific.addTransition(t, this.getTransitionsMap().get(t));
@@ -90,7 +90,7 @@ public class TransitionsCheckAndActions<S extends INameStates, E extends INameEv
         return stateSpecific;
     }
 
-    public EventCheckAndAction<E, C, X> getCheckAndAction(Transition<S, E> transition){
+    public EventCheckAndAction<E, C, X> getCheckAndAction(Transition<S, E, C, X> transition){
         return this.transitionCheckAndActions.get(transition);
     }
 

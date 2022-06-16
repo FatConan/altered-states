@@ -1,4 +1,4 @@
-package de.themonstrouscavalca.alteredstates;
+package de.themonstrouscavalca.alteredstates.transitions;
 
 import de.themonstrouscavalca.alteredstates.interfaces.IHoldContext;
 import de.themonstrouscavalca.alteredstates.interfaces.IMonitorStateChanges;

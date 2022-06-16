@@ -1,17 +1,14 @@
 package de.themonstrouscavalca.alteredstates.abs;
 
-import de.themonstrouscavalca.alteredstates.InternalTransition;
-import de.themonstrouscavalca.alteredstates.Transition;
+import de.themonstrouscavalca.alteredstates.transitions.InternalTransition;
+import de.themonstrouscavalca.alteredstates.transitions.Transition;
 import de.themonstrouscavalca.alteredstates.helpers.EventCheckAndAction;
 import de.themonstrouscavalca.alteredstates.helpers.InternalTransitionToCheckAndActionMap;
 import de.themonstrouscavalca.alteredstates.helpers.StateCollection;
 import de.themonstrouscavalca.alteredstates.helpers.TransitionToCheckAndActionMap;
 import de.themonstrouscavalca.alteredstates.interfaces.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -19,19 +16,21 @@ import java.util.stream.Collectors;
  * @param <E> Event class
  * @param <C> Current context
  * @param <X> Event context
+ * @param <T> The type of the StateMachine being created
  */
 public abstract class AbstractStateMachineBuilder<S extends INameStates,
-        E extends INameEvents, C, X, T extends IManageStates<S, E, C, X>>
+        E extends INameEvents,
+        C, X, T extends IManageStates<S, E, C, X>>
         implements IBuildStateMachines<S, E, C, X, T>, IExpressStateMachines<S, E, C, X>{
     protected S initialState;
-    protected List<Transition<S, E>> transitions = new ArrayList<>();
+    protected List<Transition<S, E, C, X>> transitions = new ArrayList<>();
     protected TransitionToCheckAndActionMap<S, E, C, X> handlerMap = new TransitionToCheckAndActionMap<>();
     protected List<InternalTransition<S, E>> internalTransitions = new ArrayList<>();
     protected InternalTransitionToCheckAndActionMap<S, E, C, X> internalHandlerMap = new InternalTransitionToCheckAndActionMap<>();
     protected C context;
     protected String name;
 
-    protected List<S> finalStates;
+    protected List<IGenerateState<S, E, C, X>> finalStates;
     protected List<E> finalEvents;
 
     public AbstractStateMachineBuilder<S, E, C, X, T> setContext(C context){
@@ -59,12 +58,19 @@ public abstract class AbstractStateMachineBuilder<S extends INameStates,
      * @param actionTaker
      * @return
      */
+
+
     public AbstractStateMachineBuilder<S, E, C, X, T> addTransition(StateCollection<S> fromStates, S to, E onEvent,
                                                                     String label,
                                                                     ICheckEvents<E, C, X> updateCheck,
                                                                     ITakeAction<E, C, X> actionTaker
     ){
-        Transition<S, E> transition = new Transition<>(fromStates, to, onEvent, label);
+        Transition<S, E, C, X> transition = new Transition.Builder<S, E, C, X>()
+                .from(fromStates)
+                .to(to)
+                .on(onEvent)
+                .label(label)
+                .build();
         this.transitions.add(transition);
         this.handlerMap.put(transition, new EventCheckAndAction<E, C, X>(updateCheck, actionTaker));
         return this;
@@ -75,7 +81,13 @@ public abstract class AbstractStateMachineBuilder<S extends INameStates,
                                                                               ICheckEvents<E, C, X> updateCheck,
                                                                               ITakeAction<E, C, X> actionTaker
     ){
-        Transition<S, E> transition = new Transition<>(fromStates, to, onEvent, label, true);
+        Transition<S, E, C, X> transition = new Transition.Builder<S, E, C, X>()
+                .from(fromStates)
+                .to(to)
+                .on(onEvent)
+                .label(label)
+                .privileged()
+                .build();
         this.transitions.add(transition);
         this.handlerMap.put(transition, new EventCheckAndAction<E, C, X>(updateCheck, actionTaker));
         return this;
@@ -177,7 +189,12 @@ public abstract class AbstractStateMachineBuilder<S extends INameStates,
                                                                             String label,
                                                                             ICheckEvents<E, C, X> updateCheck,
                                                                             ITakeAction<E, C, X> actionTaker){
-        InternalTransition<S, E> transition = new InternalTransition<>(states, onEvent, label);
+        InternalTransition<S, E> transition = new InternalTransition.Builder<S, E>()
+                .states(states)
+                .on(onEvent)
+                .label(label)
+                .build();
+
         this.internalTransitions.add(transition);
         this.internalHandlerMap.put(transition, new EventCheckAndAction<E, C, X>(updateCheck, actionTaker));
         return this;
@@ -187,7 +204,12 @@ public abstract class AbstractStateMachineBuilder<S extends INameStates,
                                                                                       String label,
                                                                                       ICheckEvents<E, C, X> updateCheck,
                                                                                       ITakeAction<E, C, X> actionTaker){
-        InternalTransition<S, E> transition = new InternalTransition<>(states, onEvent, label, true);
+        InternalTransition<S, E> transition = new InternalTransition.Builder<S, E>()
+                .states(states)
+                .on(onEvent)
+                .label(label)
+                .privileged()
+                .build();
         this.internalTransitions.add(transition);
         this.internalHandlerMap.put(transition, new EventCheckAndAction<E, C, X>(updateCheck, actionTaker));
         return this;
@@ -272,10 +294,17 @@ public abstract class AbstractStateMachineBuilder<S extends INameStates,
     }
 
     private void finalizeStateValues(){
-        List<S> finalFromStates = this.transitions.stream().map(Transition::getFromStates)
+        List<S> allFromStates = this.transitions.stream().map(Transition::getFromStates)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
-        List<S> finalToStates = this.transitions.stream().map(Transition::getToState).distinct().collect(Collectors.toList());
+
+        List<IGenerateState<S, E, C, X>> finalFromStates = new ArrayList<>();
+        for(S state: allFromStates){
+            finalFromStates.add((e, c, x) -> state);
+        }
+        List<IGenerateState<S, E, C, X>> finalToStates = this.transitions.stream()
+                .map(Transition::getToStateGenerator)
+                .distinct().collect(Collectors.toList());
         finalFromStates.addAll(finalToStates);
         this.finalStates = finalFromStates.stream().distinct().collect(Collectors.toList());
 
@@ -289,7 +318,7 @@ public abstract class AbstractStateMachineBuilder<S extends INameStates,
         return initialState;
     }
 
-    public List<Transition<S, E>> getTransitions(){
+    public List<Transition<S, E, C, X>> getTransitions(){
         return transitions;
     }
 
@@ -313,7 +342,7 @@ public abstract class AbstractStateMachineBuilder<S extends INameStates,
         return name;
     }
 
-    public List<S> getFinalStates(){
+    public List<IGenerateState<S, E, C, X>> getFinalStates(){
         return finalStates;
     }
 
