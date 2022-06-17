@@ -6,6 +6,8 @@ import de.themonstrouscavalca.alteredstates.interfaces.*;
 import de.themonstrouscavalca.alteredstates.transitions.InternalTransition;
 import de.themonstrouscavalca.alteredstates.transitions.StateChange;
 import de.themonstrouscavalca.alteredstates.transitions.Transition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -18,6 +20,8 @@ import java.util.stream.Collectors;
  * @param <X> Event context class
  */
 public class StateMachine<S extends INameStates, E extends INameEvents, C, X> implements IManageStates<S, E, C, X>{
+    protected static final Logger logger = LoggerFactory.getLogger(StateMachine.class);
+
     protected final S initialState;
     protected S currentState;
     protected final List<IGenerateState<S, E, C, X>> states;
@@ -28,7 +32,7 @@ public class StateMachine<S extends INameStates, E extends INameEvents, C, X> im
 
     public StateMachine(IExpressStateMachines<S, E, C, X> builder){
         this.initialState = builder.getInitialState();
-        this.currentState = initialState;
+        this.currentState = this.initialState;
         this.states = builder.getFinalStates();
         this.events = builder.getFinalEvents();
         this.name = builder.getName();
@@ -159,6 +163,7 @@ public class StateMachine<S extends INameStates, E extends INameEvents, C, X> im
                 externalTransitionFound, externalTransitionPermitted, externalTransitionSuccessful,
                 internalTransitionFound, internalTransitionPermitted, internalTransitionSuccessful);
     }
+
     public IMonitorStateChanges<S, E, C, X> onEvent(E event, X eventContext){
         return this.handleEvent(event, eventContext);
     }
@@ -176,8 +181,15 @@ public class StateMachine<S extends INameStates, E extends INameEvents, C, X> im
     }
 
     public List<Transition<S, E, C, X>> getAvailableTransitions(){
+        logger.debug("Current state: " + this.currentState);
         return this.handlerChecksAndActions.getTransitions().stream()
                 .filter(t -> t.getFromStates().matches(this.currentState))
+                .collect(Collectors.toList());
+    }
+
+    public List<InternalTransition<S, E>> getAvailableInternalTransitions(){
+        return this.handlerChecksAndActions.getInternalTransitions().stream()
+                .filter(t -> t.getStates().matches(this.currentState))
                 .collect(Collectors.toList());
     }
 }

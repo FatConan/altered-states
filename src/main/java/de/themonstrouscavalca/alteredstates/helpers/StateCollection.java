@@ -7,13 +7,16 @@ import java.util.HashSet;
 
 public class StateCollection<S extends INameStates> extends HashSet<S>{
     @SuppressWarnings("rawtypes")
-    public final static StateCollection WILDCARD = new StateCollection<>();
+    public static final StateCollection WILDCARD;
     static {
-        WILDCARD.wildcard = true;
+        @SuppressWarnings("rawtypes")
+        final StateCollection wildcard = new StateCollection<>();
+        wildcard.wildcard = true;
+        WILDCARD = wildcard;
     }
 
     @SuppressWarnings("unchecked")
-    public static final <T extends INameStates> StateCollection<T> wildcard() {
+    public static <T extends INameStates> StateCollection<T> wildcard() {
         return (StateCollection<T>) WILDCARD;
     }
 
@@ -46,6 +49,15 @@ public class StateCollection<S extends INameStates> extends HashSet<S>{
     }
 
     public boolean matches(S state){
-        return (this.isInverse() && !this.contains(state)) || (this.isWildcard() || this.contains(state));
+        if(this.isWildcard()){
+            //Wild cards match any state, so return true without performing further checks
+            return true;
+        }
+        if(this.isInverse()){
+            //This is a NOT group. check that the provided state is NOT in the current set
+            return !this.contains(state);
+        }
+        //Otherwise check if the returned state is within the current set
+        return this.contains(state);
     }
 }

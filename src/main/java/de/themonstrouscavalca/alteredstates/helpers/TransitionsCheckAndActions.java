@@ -16,7 +16,7 @@ public class TransitionsCheckAndActions<S extends INameStates, E extends INameEv
     private InternalTransitionToCheckAndActionMap<S, E, C, X> internalTransitionCheckAndActions = new InternalTransitionToCheckAndActionMap<>();
 
     public List<Transition<S, E, C, X>> getTransitions(){
-        List<Transition<S, E, C, X>> transitions = new ArrayList<Transition<S, E, C, X>>(this.transitionCheckAndActions.keySet());
+        List<Transition<S, E, C, X>> transitions = new ArrayList<>(this.transitionCheckAndActions.keySet());
         transitions.sort(Comparator.comparing(Transition::getLabel));
         return transitions;
     }

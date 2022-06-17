@@ -58,7 +58,23 @@ public abstract class AbstractStateMachineBuilder<S extends INameStates,
      * @param actionTaker
      * @return
      */
-
+    public AbstractStateMachineBuilder<S, E, C, X, T> addTransition(StateCollection<S> fromStates,
+                                                                    IGenerateState<S, E, C, X> to,
+                                                                    E onEvent,
+                                                                    String label,
+                                                                    ICheckEvents<E, C, X> updateCheck,
+                                                                    ITakeAction<E, C, X> actionTaker
+    ){
+        Transition<S, E, C, X> transition = new Transition.Builder<S, E, C, X>()
+                .from(fromStates)
+                .to(to)
+                .on(onEvent)
+                .label(label)
+                .build();
+        this.transitions.add(transition);
+        this.handlerMap.put(transition, new EventCheckAndAction<E, C, X>(updateCheck, actionTaker));
+        return this;
+    }
 
     public AbstractStateMachineBuilder<S, E, C, X, T> addTransition(StateCollection<S> fromStates, S to, E onEvent,
                                                                     String label,
@@ -146,11 +162,11 @@ public abstract class AbstractStateMachineBuilder<S extends INameStates,
 
     //Make a distinction for adding privileged transitions
     public AbstractStateMachineBuilder<S, E, C, X, T> addPrivilegedTransition(S from, S to, E onEvent,
-                                                                    String label,
-                                                                    ICheckEvents<E, C, X> updateCheck,
-                                                                    ITakeAction<E, C, X> actionTaker
+                                                                              String label,
+                                                                              ICheckEvents<E, C, X> updateCheck,
+                                                                              ITakeAction<E, C, X> actionTaker
     ){
-       return this.addPrivilegedTransition(StateCollection.of(from), to, onEvent, label, updateCheck, actionTaker);
+        return this.addPrivilegedTransition(StateCollection.of(from), to, onEvent, label, updateCheck, actionTaker);
     }
 
     public AbstractStateMachineBuilder<S, E, C, X, T> addPrivilegedTransition(S from, S to, E onEvent,
@@ -169,8 +185,8 @@ public abstract class AbstractStateMachineBuilder<S extends INameStates,
     }
 
     public AbstractStateMachineBuilder<S, E, C, X, T> addPrivilegedTransition(StateCollection<S> from, S to, E onEvent,
-                                                                    ICheckEvents<E, C, X> updateCheck,
-                                                                    ITakeAction<E, C, X> actionTaker
+                                                                              ICheckEvents<E, C, X> updateCheck,
+                                                                              ITakeAction<E, C, X> actionTaker
     ){
         return this.addPrivilegedTransition(from, to, onEvent, "", updateCheck, actionTaker);
     }
@@ -260,8 +276,8 @@ public abstract class AbstractStateMachineBuilder<S extends INameStates,
     }
 
     public AbstractStateMachineBuilder<S, E, C, X, T> addPrivilegedInternalTransition(S state, E onEvent,
-                                                                            ICheckEvents<E, C, X> updateCheck,
-                                                                            ITakeAction<E, C, X> actionTaker){
+                                                                                      ICheckEvents<E, C, X> updateCheck,
+                                                                                      ITakeAction<E, C, X> actionTaker){
         return this.addPrivilegedInternalTransition(StateCollection.of(state), onEvent, "", updateCheck, actionTaker);
     }
 
@@ -299,7 +315,7 @@ public abstract class AbstractStateMachineBuilder<S extends INameStates,
                 .collect(Collectors.toList());
 
         List<IGenerateState<S, E, C, X>> finalFromStates = new ArrayList<>();
-        for(S state: allFromStates){
+        for(S state : allFromStates){
             finalFromStates.add((e, c, x) -> state);
         }
         List<IGenerateState<S, E, C, X>> finalToStates = this.transitions.stream()

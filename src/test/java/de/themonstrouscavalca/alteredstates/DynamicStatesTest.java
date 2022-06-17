@@ -1,11 +1,22 @@
 package de.themonstrouscavalca.alteredstates;
 
 import de.themonstrouscavalca.alteredstates.abs.AbstractStateMachineBuilder;
+import de.themonstrouscavalca.alteredstates.helpers.StateCollection;
 import de.themonstrouscavalca.alteredstates.impl.StateMachine;
 import de.themonstrouscavalca.alteredstates.interfaces.*;
 import de.themonstrouscavalca.alteredstates.transitions.StateChange;
+import de.themonstrouscavalca.alteredstates.transitions.Transition;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 
 public class DynamicStatesTest{
+    protected static final Logger logger = LoggerFactory.getLogger(StateMachine.class);
+
     private enum StageStatus implements INameStates{
         VOID,
         UNSTARTED,
@@ -133,16 +144,55 @@ public class DynamicStatesTest{
         return stage(process, "Create the final requirements document", "Contribute to the document", "Complete the document");
     }
 
-
-    /*private ProcessNodes process(Process process){
+    private ProcessNodes process(Process process){
         ProcessNodes.ProcessNodeBuilder builder = new ProcessNodes.ProcessNodeBuilder();
         return builder
                 .setContext(process)
                 .setInitialState(StageNode.VOID)
-                .addTransition(StageNode.VOID, DOCUMENT_REVIEW(process),
-                        ProcessEvent.START_DOCUMENT_REVIEW, )
+                .addTransition(StateCollection.of(StageNode.VOID),
+                        (e, c, x) -> DOCUMENT_REVIEW(process),
+                        ProcessEvent.START_DOCUMENT_REVIEW,
+                        "Start a review",
+                        (ch) -> true,
+                        (ch) -> ch
+                )
+                .addTransition(StateCollection.not(StageNode.VOID),
+                        (e, c, x) -> REQUIREMENTS_CREATION(process),
+                        ProcessEvent.START_REQUIREMENTS_CREATION,
+                        "Start a requirement creation",
+                        (ch) -> true,
+                        (ch) -> ch
+                )
+                .addTransition(StateCollection.not(StageNode.VOID),
+                        (e, c, x) -> REQUIREMENTS_REVIEW(process),
+                        ProcessEvent.START_REQUIREMENTS_REVIEW,
+                        "Start a requirement review",
+                        (ch) -> true,
+                        (ch) -> ch
+                )
+                .addTransition(StateCollection.not(StageNode.VOID),
+                        (e, c, x) -> REQUIREMENT_DOCUMENT(process),
+                        ProcessEvent.START_REQUIREMENT_DOCUMENT,
+                        "Start a requirement document",
+                        (ch) -> true,
+                        (ch) -> ch
+                )
+                .addInternalTransition(StateCollection.not(StageNode.VOID),
+                        ProcessEvent.COMPLETE_FEEDBACK)
                 .build();
 
-    }*/
+    }
 
+
+    @Test
+    public void DynamicStateMachineTest(){
+        Process process = new Process();
+        ProcessNodes processNodes = process(process);
+        assertEquals("Checking the initial state", StageNode.VOID, processNodes.getCurrentState());
+        List<Transition<StageNode, ProcessEvent, Process, ProcessDetails>> options = processNodes.getAvailableTransitions();
+        for(Transition<StageNode, ProcessEvent, Process, ProcessDetails> option: options){
+            logger.debug(option.getLabel());
+        }
+        assertEquals("The number of transitions does not match", 1, options.size());
+    }
 }
