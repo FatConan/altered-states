@@ -78,11 +78,11 @@ public class StateMachine<S extends INameStates, E extends INameEvents, C, X> im
 
     public Events<E> getEventsForState(S state){
         Set<E> externalEvents = this.getTransitions().stream()
-                .filter(t -> t.getFromStates().matches(state))
+                .filter(t -> t.matchesFromState(state))
                 .map(Transition::getEvent)
                 .collect(Collectors.toSet());
         Set<E> internalEvents = this.getInternalTransitions().stream()
-                .filter(t -> t.getStates().matches(state))
+                .filter(t -> t.matchesState(state))
                 .map(InternalTransition::getEvent).collect(Collectors.toSet());
         return new Events<>(externalEvents, internalEvents);
     }
@@ -183,13 +183,13 @@ public class StateMachine<S extends INameStates, E extends INameEvents, C, X> im
     public List<Transition<S, E, C, X>> getAvailableTransitions(){
         logger.debug("Current state: " + this.currentState);
         return this.handlerChecksAndActions.getTransitions().stream()
-                .filter(t -> t.getFromStates().matches(this.currentState))
+                .filter(t -> t.matchesFromState(this.currentState))
                 .collect(Collectors.toList());
     }
 
     public List<InternalTransition<S, E>> getAvailableInternalTransitions(){
         return this.handlerChecksAndActions.getInternalTransitions().stream()
-                .filter(t -> t.getStates().matches(this.currentState))
+                .filter(t -> t.matchesState(this.currentState))
                 .collect(Collectors.toList());
     }
 }

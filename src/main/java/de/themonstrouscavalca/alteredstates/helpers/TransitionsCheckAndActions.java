@@ -62,7 +62,7 @@ public class TransitionsCheckAndActions<S extends INameStates, E extends INameEv
     public List<Transition<S, E, C, X>> getTransitionForEventAndState(E event, S state){
         List<Transition<S, E, C, X>> transitionsForEvent = this.eventMap.getOrDefault(event, Collections.emptyList());
         List<Transition<S, E, C, X>> selected = transitionsForEvent.stream()
-                .filter(t -> t.getFromStates().matches(state))
+                .filter(t -> t.matchesFromState(state))
                 .collect(Collectors.toList());
         return selected;
     }
@@ -70,20 +70,20 @@ public class TransitionsCheckAndActions<S extends INameStates, E extends INameEv
     public List<InternalTransition<S, E>> getInternalTransitionForEventAndState(E event, S state){
         List<InternalTransition<S, E>> transitionsForEvent = this.internalEventMap.getOrDefault(event, Collections.emptyList());
         List<InternalTransition<S, E>> selected = transitionsForEvent.stream()
-                .filter(t -> t.getStates().matches(state)).collect(Collectors.toList());
+                .filter(t -> t.matchesState(state)).collect(Collectors.toList());
         return selected;
     }
 
     public TransitionsCheckAndActions<S, E, C, X> getForState(S state){
         TransitionsCheckAndActions<S, E, C, X> stateSpecific = new TransitionsCheckAndActions<>();
         for(Transition<S, E, C, X> t: this.getTransitions().stream()
-                .filter(t -> t.getFromStates().matches(state))
+                .filter(t -> t.matchesFromState(state))
                 .collect(Collectors.toList())){
             stateSpecific.addTransition(t, this.getTransitionsMap().get(t));
         }
 
         for(InternalTransition<S, E> t: this.getInternalTransitions().stream()
-                .filter(t -> t.getStates().matches(state))
+                .filter(t -> t.matchesState(state))
                 .collect(Collectors.toList())){
             stateSpecific.addTransition(t, this.getInternalTransitionsMap().get(t));
         }
